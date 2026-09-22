@@ -190,7 +190,7 @@ Future<void> _continuar() async {
 
                 NhacInputField(
                   hintText: '(00) 00000-0000',
-                  controller: _telefoneController,
+                 controller: _telefoneController,
                   keyboardType: TextInputType.phone,
                 ),
 
@@ -265,7 +265,8 @@ Future<void> _continuar() async {
                ButtonNhac(
                 texto: _carregando ? 'Enviando...' : 'Continuar',
                 onTap: _carregando ? null : _continuar,
-              ),
+              //    onTap: () => context.push('/confirmar-email'),              
+                ),
               ],
             ),
           ),

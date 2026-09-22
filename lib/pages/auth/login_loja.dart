@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/nhac_input_field.dart';
+import 'package:nhac_lojas/services/auth_service.dart';
 
 class LoginLoja extends StatefulWidget {
   const LoginLoja({super.key});
@@ -14,8 +15,68 @@ class LoginLoja extends StatefulWidget {
 }
 
 class _LoginLojaState extends State<LoginLoja> {
-  bool _senhaVisivel = false;
+final _emailController = TextEditingController();
+final _senhaController = TextEditingController();
 
+bool _senhaVisivel = false;
+bool _carregando = false;
+
+@override
+void dispose() {
+  _emailController.dispose();
+  _senhaController.dispose();
+  super.dispose();
+}
+Future<void> _fazerLogin() async {
+  final email = _emailController.text.trim();
+  final senha = _senhaController.text;
+
+  if (email.isEmpty) {
+    _mostrarErro('Digite seu e-mail ou telefone.');
+    return;
+  }
+
+  if (senha.isEmpty) {
+    _mostrarErro('Digite sua senha.');
+    return;
+  }
+
+  setState(() {
+    _carregando = true;
+  });
+
+  try {
+    final resultado = await AuthService.login(
+      email: email,
+      senha: senha,
+    );
+
+    debugPrint('LOGIN REALIZADO: $resultado');
+
+    if (!mounted) return;
+
+    context.go('/home');
+  } catch (e) {
+    if (!mounted) return;
+
+    _mostrarErro(
+      e.toString().replaceFirst('Exception: ', ''),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _carregando = false;
+      });
+    }
+  }
+}
+void _mostrarErro(String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +117,10 @@ class _LoginLojaState extends State<LoginLoja> {
                   style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 4.h),
-                const NhacInputField(hintText: 'Email'),
+                 NhacInputField(
+                  hintText: 'Email',
+                  controller: _emailController
+                  ),
                 SizedBox(height: 16.h),
                 Text(
                   'Senha',
@@ -66,6 +130,7 @@ class _LoginLojaState extends State<LoginLoja> {
                 NhacInputField(
                   hintText: 'Senha',
                   obscureText: !_senhaVisivel,
+                  controller: _senhaController,
                   suffixIcon: IconButton(
                     icon: _senhaVisivel
                         ? Icon(Icons.visibility, color: const Color(0xFFFF6961), size: 24.sp)
@@ -144,7 +209,9 @@ class _LoginLojaState extends State<LoginLoja> {
                 SizedBox(height: 32.h),
                 ButtonNhac(
                   texto: 'Continuar',
+             //      onTap: _fazerLogin,
                   onTap: () => context.go('/home'),
+
                 ),
               ],
             ),

@@ -94,8 +94,17 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/confirmar-email',
-      builder: (context, state) => const ConfirmarEmailPage(),
-    ),
+      builder: (context, state) {
+        final dados = state.extra as Map<String, String>;
+
+      return ConfirmarEmailPage(
+        nome: dados['nome']!,
+        email: dados['email']!,
+        telefone: dados['telefone']!,
+        senha: dados['senha']!,
+      );
+  },
+),
     GoRoute(
       path: '/dados-basicos',
       builder: (context, state) => const DadosBasicosPage(),
