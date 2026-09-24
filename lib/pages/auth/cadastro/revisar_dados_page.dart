@@ -6,10 +6,16 @@ import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/container_card_revisao.dart';
 import 'package:nhac_lojas/components/filter_tag.dart';
 import 'package:nhac_lojas/components/register_steps.dart';
+import 'package:nhac_lojas/models/cadastro_loja.dart';
 
 class RevisarDadosPage extends StatelessWidget {
-  const RevisarDadosPage({super.key});
+  final CadastroLoja cadastro;
 
+  const RevisarDadosPage({
+    super.key,
+    required this.cadastro,
+  });
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

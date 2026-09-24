@@ -5,6 +5,7 @@ import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/nhac_input_field.dart';
 import 'package:nhac_lojas/components/register_steps.dart';
+import 'package:nhac_lojas/models/cadastro_loja.dart';
 
 class DadosBasicosPage extends StatefulWidget {
   const DadosBasicosPage({super.key});
@@ -14,15 +15,16 @@ class DadosBasicosPage extends StatefulWidget {
 }
 
 class _DadosBasicosState extends State<DadosBasicosPage> {
-  final TextEditingController tipoEstabelecimentoController = TextEditingController();
+  final TextEditingController nomeController = TextEditingController();final TextEditingController descricaoController = TextEditingController();
   final TextEditingController tipoCulinariaController = TextEditingController();
 
-  @override
-  void dispose() {
-    tipoEstabelecimentoController.dispose();
-    tipoCulinariaController.dispose();
-    super.dispose();
-  }
+@override
+void dispose() {
+  nomeController.dispose();
+  descricaoController.dispose();
+  tipoCulinariaController.dispose();
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -131,15 +133,27 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                   'Nome da loja',
                   style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
+
                 SizedBox(height: 4.h),
-                const NhacInputField(hintText: 'Ex: Nhac Burguer'),
+
+                NhacInputField(
+                  hintText: 'Ex: Nhac Burguer',
+                  controller: nomeController,
+                  ),
+
                 SizedBox(height: 16.h),
                 Text(
                   'Descrição da loja',
                   style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
+
                 SizedBox(height: 4.h),
-                const NhacInputField(hintText: 'Conte um pouco sobre a sua loja...'),
+                
+                NhacInputField(
+                  hintText: 'Conte um pouco sobre a sua loja...',
+                  controller: descricaoController,
+                  ),
+
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -147,85 +161,22 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                     style: TextStyle(color: Colors.grey, fontSize: 12.sp),
                   ),
                 ),
+
                 SizedBox(height: 16.h),
+                
                 Text(
                   'Tipo de estabelecimento',
                   style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 4.h),
-                NhacInputField(
-                  controller: tipoEstabelecimentoController,
-                  hintText: 'Selecione',
-                  readOnly: true,
-                  suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, size: 24.sp),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) {
-                        return ListView(
-                          shrinkWrap: true,
-                          children: [
-                            ListTile(
-                              title: const Text('Restaurante'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Restaurante';
-                                Navigator.pop(context);
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Lanchonete'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Lanchonete';
-                                Navigator.pop(context);
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Padaria'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Padaria';
-                                Navigator.pop(context);
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Mercado/conveniência'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Mercado/conveniência';
-                                Navigator.pop(context);
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Farmácia'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Farmácia';
-                                Navigator.pop(context);
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Pet shop'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Pet shop';
-                                Navigator.pop(context);
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Loja de bebidas'),
-                              onTap: () {
-                                tipoEstabelecimentoController.text = 'Loja de bebidas';
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
+                
                 SizedBox(height: 16.h),
                 Text(
                   'Culinária / Categoria',
                   style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
+
                 SizedBox(height: 4.h),
+
                 NhacInputField(
                   controller: tipoCulinariaController,
                   hintText: 'Selecione',
@@ -273,9 +224,20 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                   },
                 ),
                 SizedBox(height: 24.h),
-                ButtonNhac(
+               ButtonNhac(
                   texto: 'Continuar',
-                  onTap: () => context.push('/endereco-loja'),
+                  onTap: () {
+                    final cadastro = CadastroLoja();
+
+                    cadastro.nome = nomeController.text.trim();
+                    cadastro.descricao = descricaoController.text.trim();
+                    cadastro.categoria = tipoCulinariaController.text.trim();
+
+                    context.push(
+                      '/endereco-loja',
+                      extra: cadastro,
+                    );
+                  },
                 ),
               ],
             ),

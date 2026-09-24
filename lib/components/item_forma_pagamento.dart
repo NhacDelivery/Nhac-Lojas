@@ -5,11 +5,13 @@ class ItemFormaPagamento extends StatefulWidget {
   final IconData icon;
   final String metodo;
   final bool ativoInicial;
+  final ValueChanged<bool>? onChanged;
 
   const ItemFormaPagamento({
     required this.icon,
     required this.metodo,
     this.ativoInicial = true,
+    this.onChanged,
     super.key,
   });
 

@@ -1,13 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/item_horario_funcionamento.dart';
 import 'package:nhac_lojas/components/register_steps.dart';
+import 'package:nhac_lojas/models/cadastro_loja.dart';
 
-class HorarioFuncionamentoPage extends StatelessWidget {
-  const HorarioFuncionamentoPage({super.key});
+class HorarioFuncionamentoPage extends StatefulWidget {
+  final CadastroLoja cadastro;
+
+  const HorarioFuncionamentoPage({
+    super.key,
+    required this.cadastro,
+  });
+
+  @override
+  State<HorarioFuncionamentoPage> createState() =>
+      _HorarioFuncionamentoPageState();
+}
+
+class _HorarioFuncionamentoPageState
+    extends State<HorarioFuncionamentoPage> {
+  String? domingo;
+  String? segunda;
+  String? terca;
+  String? quarta;
+  String? quinta;
+  String? sexta;
+  String? sabado;
+
+  void continuar() {
+    widget.cadastro.domingo = domingo ?? 'Fechado';
+    widget.cadastro.segunda = segunda ?? 'Fechado';
+    widget.cadastro.terca = terca ?? 'Fechado';
+    widget.cadastro.quarta = quarta ?? 'Fechado';
+    widget.cadastro.quinta = quinta ?? 'Fechado';
+    widget.cadastro.sexta = sexta ?? 'Fechado';
+    widget.cadastro.sabado = sabado ?? 'Fechado';
+
+    context.push(
+      '/forma-pagamento-cadastro',
+      extra: widget.cadastro,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +69,15 @@ class HorarioFuncionamentoPage extends StatelessWidget {
                     ),
                   ],
                 ),
+
                 SizedBox(height: 24.h),
-                const RegisterSteps(passoAtual: PassoCadastrar.horarios),
+
+                const RegisterSteps(
+                  passoAtual: PassoCadastrar.horarios,
+                ),
+
                 SizedBox(height: 18.h),
+
                 Text(
                   'Horário de funcionamento',
                   style: TextStyle(
@@ -42,7 +85,9 @@ class HorarioFuncionamentoPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
                 SizedBox(height: 8.h),
+
                 Text(
                   'Defina os dias e horários em que sua loja recebe pedidos.',
                   style: TextStyle(
@@ -51,64 +96,82 @@ class HorarioFuncionamentoPage extends StatelessWidget {
                     color: Colors.grey,
                   ),
                 ),
+
                 SizedBox(height: 18.h),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    'Copiar p/ todos os dias',
-                    style: TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 18.h),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Seg',
-                  horario: '08:00 - 18:00',
                   ativoInicial: true,
+                  onHorarioChanged: (horario) {
+                    segunda = horario;
+                  },
                 ),
+
                 const Divider(),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Ter',
-                  horario: '08:00 - 18:00',
                   ativoInicial: true,
+                  onHorarioChanged: (horario) {
+                    terca = horario;
+                  },
                 ),
+
                 const Divider(),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Qua',
-                  horario: '08:00 - 18:00',
                   ativoInicial: true,
+                  onHorarioChanged: (horario) {
+                    quarta = horario;
+                  },
                 ),
+
                 const Divider(),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Qui',
-                  horario: '08:00 - 18:00',
                   ativoInicial: true,
+                  onHorarioChanged: (horario) {
+                    quinta = horario;
+                  },
                 ),
+
                 const Divider(),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Sex',
-                  horario: '08:00 - 22:00',
                   ativoInicial: true,
+                  onHorarioChanged: (horario) {
+                    sexta = horario;
+                  },
                 ),
+
                 const Divider(),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Sáb',
-                  horario: '10:00 - 22:00',
                   ativoInicial: true,
+                  onHorarioChanged: (horario) {
+                    sabado = horario;
+                  },
                 ),
+
                 const Divider(),
-                const ItemHorarioFuncionamento(
+
+                ItemHorarioFuncionamento(
                   diaSemana: 'Dom',
-                  horario: 'Fechado',
                   ativoInicial: false,
+                  onHorarioChanged: (horario) {
+                    domingo = horario;
+                  },
                 ),
+
                 SizedBox(height: 24.h),
+
                 ButtonNhac(
                   texto: 'Continuar',
-                  onTap: () => context.push('/forma-pagamento-cadastro'),
+                  onTap: continuar,
                 ),
               ],
             ),
