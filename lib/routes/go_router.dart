@@ -218,10 +218,10 @@ final GoRouter appRouter = GoRouter(
       path: '/avaliacoes',
       builder: (context, state) => const AvaliacoesPage(),
     ),
-    GoRoute(
-      path: '/horarios',
-      builder: (context, state) => const HorarioEdicaoPage(),
-    ),
+    // GoRoute(
+    //   path: '/horarios',
+    //   builder: (context, state) => const HorarioEdicaoPage(),
+    // ),
     GoRoute(
       path: '/cupom',
       builder: (context, state) => const CupomPage(),

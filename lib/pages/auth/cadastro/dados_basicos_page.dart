@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/nhac_input_field.dart';
@@ -15,16 +18,75 @@ class DadosBasicosPage extends StatefulWidget {
 }
 
 class _DadosBasicosState extends State<DadosBasicosPage> {
-  final TextEditingController nomeController = TextEditingController();final TextEditingController descricaoController = TextEditingController();
+  final TextEditingController nomeController = TextEditingController();
+  final TextEditingController descricaoController = TextEditingController();
   final TextEditingController tipoCulinariaController = TextEditingController();
 
-@override
-void dispose() {
-  nomeController.dispose();
-  descricaoController.dispose();
-  tipoCulinariaController.dispose();
-  super.dispose();
-}
+  File? _imagem;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void dispose() {
+    nomeController.dispose();
+    descricaoController.dispose();
+    tipoCulinariaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selecionarImagem(ImageSource source) async {
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 1080,
+        imageQuality: 85, // reduz o tamanho (limite do backend: 5MB)
+      );
+      if (picked != null) {
+        setState(() => _imagem = File(picked.path));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível selecionar a imagem.')),
+      );
+    }
+  }
+
+  void _mostrarOpcoesFoto() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Escolher da galeria'),
+              onTap: () {
+                Navigator.pop(context);
+                _selecionarImagem(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Tirar foto'),
+              onTap: () {
+                Navigator.pop(context);
+                _selecionarImagem(ImageSource.camera);
+              },
+            ),
+            if (_imagem != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Remover foto'),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _imagem = null);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +104,8 @@ void dispose() {
                     SizedBox(width: 12.w),
                     Text(
                       'Cadastrar loja',
-                      style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 20.sp, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -51,7 +114,8 @@ void dispose() {
                 SizedBox(height: 18.h),
                 Text(
                   'Dados básicos',
-                  style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8.h),
                 Text(
@@ -65,45 +129,56 @@ void dispose() {
                 SizedBox(height: 18.h),
                 Row(
                   children: [
-                    Stack(
-                      children: [
-                        Container(
-                          width: 76.w,
-                          height: 76.w,
-                          decoration: const BoxDecoration(
-                            color: Color.fromARGB(255, 255, 213, 213),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.camera_alt_outlined,
-                            size: 24.sp,
-                            color: Colors.redAccent,
-                          ),
-                        ),
-                        Positioned(
-                          right: 2.w,
-                          bottom: 2.h,
-                          child: Container(
-                            padding: EdgeInsets.all(2.r),
+                    GestureDetector(
+                      onTap: _mostrarOpcoesFoto,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 76.w,
+                            height: 76.w,
+                            clipBehavior: Clip.antiAlias,
                             decoration: const BoxDecoration(
-                              color: Color.fromARGB(255, 255, 231, 229),
+                              color: Color.fromARGB(255, 255, 213, 213),
                               shape: BoxShape.circle,
                             ),
+                            child: _imagem != null
+                                ? Image.file(
+                                    _imagem!,
+                                    fit: BoxFit.cover,
+                                    width: 76.w,
+                                    height: 76.w,
+                                  )
+                                : Icon(
+                                    Icons.camera_alt_outlined,
+                                    size: 24.sp,
+                                    color: Colors.redAccent,
+                                  ),
+                          ),
+                          Positioned(
+                            right: 2.w,
+                            bottom: 2.h,
                             child: Container(
-                              padding: EdgeInsets.all(6.r),
+                              padding: EdgeInsets.all(2.r),
                               decoration: const BoxDecoration(
-                                color: Colors.redAccent,
+                                color: Color.fromARGB(255, 255, 231, 229),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
-                                Icons.add,
-                                size: 8.sp,
-                                color: Colors.white,
+                              child: Container(
+                                padding: EdgeInsets.all(6.r),
+                                decoration: const BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  size: 8.sp,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     SizedBox(width: 12.w),
                     Column(
@@ -131,29 +206,25 @@ void dispose() {
                 SizedBox(height: 18.h),
                 Text(
                   'Nome da loja',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
-
                 SizedBox(height: 4.h),
-
                 NhacInputField(
                   hintText: 'Ex: Nhac Burguer',
                   controller: nomeController,
-                  ),
-
+                ),
                 SizedBox(height: 16.h),
                 Text(
                   'Descrição da loja',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
-
                 SizedBox(height: 4.h),
-                
                 NhacInputField(
                   hintText: 'Conte um pouco sobre a sua loja...',
                   controller: descricaoController,
-                  ),
-
+                ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -161,27 +232,25 @@ void dispose() {
                     style: TextStyle(color: Colors.grey, fontSize: 12.sp),
                   ),
                 ),
-
                 SizedBox(height: 16.h),
-                
                 Text(
                   'Tipo de estabelecimento',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
-                
                 SizedBox(height: 16.h),
                 Text(
                   'Culinária / Categoria',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                 ),
-
                 SizedBox(height: 4.h),
-
                 NhacInputField(
                   controller: tipoCulinariaController,
                   hintText: 'Selecione',
                   readOnly: true,
-                  suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, size: 24.sp),
+                  suffixIcon:
+                      Icon(Icons.keyboard_arrow_down_rounded, size: 24.sp),
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
@@ -224,7 +293,7 @@ void dispose() {
                   },
                 ),
                 SizedBox(height: 24.h),
-               ButtonNhac(
+                ButtonNhac(
                   texto: 'Continuar',
                   onTap: () {
                     final cadastro = CadastroLoja();
@@ -232,6 +301,7 @@ void dispose() {
                     cadastro.nome = nomeController.text.trim();
                     cadastro.descricao = descricaoController.text.trim();
                     cadastro.categoria = tipoCulinariaController.text.trim();
+                    cadastro.imagemArquivo = _imagem; // foto escolhida
 
                     context.push(
                       '/endereco-loja',

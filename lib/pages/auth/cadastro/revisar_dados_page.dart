@@ -9,6 +9,7 @@ import 'package:nhac_lojas/components/register_steps.dart';
 import 'package:nhac_lojas/models/cadastro_loja.dart';
 import 'package:nhac_lojas/services/auth_service.dart';
 import '../../../services/loja_service.dart';
+import 'package:nhac_lojas/models/cadastro_usuario.dart';
 
 class RevisarDadosPage extends StatefulWidget {
   final CadastroLoja cadastro;
@@ -28,58 +29,64 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
   bool _carregando = false;
 
   Future<void> finalizarCadastro() async {
-    if (_carregando) return;
+  if (_carregando) return;
 
-    setState(() {
-      _carregando = true;
-    });
+  setState(() => _carregando = true);
 
-    try {
+  try {
+    // Reaproveita token se já existir (ex.: retry após falha ao criar a loja)
+    String? token = await AuthService.obterToken();
 
-      final token = await AuthService.obterToken();
-
-      if (token == null || token.isEmpty) {
+    if (token == null || token.isEmpty) {
+      if (!CadastroUsuario.completo) {
         throw Exception(
-          'Sua sessão expirou. Faça login novamente.',
+          'Dados do usuário não encontrados. Refaça o cadastro.',
         );
       }
 
-      print('🔐 Token encontrado.');
-      print('➡️ Enviando cadastro da loja...');
+      print('➡️ Registrando usuário e gerando token...');
 
-      
-
-      await _lojaService.criarLoja(
-        cadastro: widget.cadastro,
-        token: token,
+      final resposta = await AuthService.registrar(
+        id: CadastroUsuario.id!,
+        nome: CadastroUsuario.nome!,
+        email: CadastroUsuario.email!,
+        telefone: CadastroUsuario.telefone!,
+        senha: CadastroUsuario.senha!,
       );
 
-      
-      if (!mounted) return;
+      token = resposta['token']?.toString();
+    }
 
-      context.go('/loja-cadastrada');
-    } catch (e) {
-      if (!mounted) return;
+    if (token == null || token.isEmpty) {
+      throw Exception('Não foi possível obter o token de acesso.');
+    }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceFirst(
-              'Exception: ',
-              '',
-            ),
-          ),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-    } finally {
-      if (!mounted) return;
+    print('➡️ Enviando cadastro da loja...');
 
-      setState(() {
-        _carregando = false;
-      });
+    await _lojaService.criarLoja(
+      cadastro: widget.cadastro,
+      token: token,
+    );
+
+    CadastroUsuario.limpar();
+
+    if (!mounted) return;
+    context.go('/loja-cadastrada');
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(e.toString().replaceFirst('Exception: ', '')),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() => _carregando = false);
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,11 @@
+import 'dart:io';
+
 class CadastroLoja {
   String? nome;
   String? descricao;
   String? categoria;
   String? imagemUrl;
+  File? imagemArquivo; 
 
   bool isAberto;
 
@@ -42,6 +45,7 @@ class CadastroLoja {
     this.descricao,
     this.categoria,
     this.imagemUrl,
+    this.imagemArquivo,
     this.isAberto = true,
     this.cep,
     this.rua,

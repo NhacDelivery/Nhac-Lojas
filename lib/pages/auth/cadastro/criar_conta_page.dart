@@ -6,7 +6,9 @@ import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/nhac_input_field.dart';
 import '../../../services/auth_service.dart';
+import 'package:nhac_lojas/models/cadastro_usuario.dart';
 
+import 'package:uuid/uuid.dart';
 
 class CriarContaPage extends StatefulWidget {
   const CriarContaPage({super.key});
@@ -18,6 +20,7 @@ class CriarContaPage extends StatefulWidget {
 
 
 class _CriarContaPageState extends State<CriarContaPage> {
+  
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
@@ -31,74 +34,90 @@ class _CriarContaPageState extends State<CriarContaPage> {
 
 
 Future<void> _continuar() async {
-    final nome = _nomeController.text.trim();
-    final email = _emailController.text.trim();
-    final telefone = _telefoneController.text.trim();
-    final senha = _senhaController.text;
-    final confirmarSenha = _confirmarSenhaController.text;
+  final nome = _nomeController.text.trim();
+  final email = _emailController.text.trim();
+  final telefone = _telefoneController.text.trim();
+  final senha = _senhaController.text;
+  final confirmarSenha = _confirmarSenhaController.text;
 
-    if (nome.isEmpty) {
-      _mostrarErro('Digite seu nome completo.');
-      return;
-    }
+  if (nome.isEmpty) {
+    _mostrarErro('Digite seu nome completo.');
+    return;
+  }
 
-    if (email.isEmpty) {
-      _mostrarErro('Digite seu e-mail.');
-      return;
-    }
+  if (email.isEmpty) {
+    _mostrarErro('Digite seu e-mail.');
+    return;
+  }
 
-    if (telefone.isEmpty) {
-      _mostrarErro('Digite seu telefone.');
-      return;
-    }
+  if (telefone.isEmpty) {
+    _mostrarErro('Digite seu telefone.');
+    return;
+  }
 
-    if (senha.isEmpty) {
-      _mostrarErro('Digite uma senha.');
-      return;
-    }
+  if (senha.isEmpty) {
+    _mostrarErro('Digite uma senha.');
+    return;
+  }
 
-    if (senha.length < 8) {
-      _mostrarErro('A senha deve ter no mínimo 8 caracteres.');
-      return;
-    }
+  if (senha.length < 8) {
+    _mostrarErro('A senha deve ter no mínimo 8 caracteres.');
+    return;
+  }
 
-    if (senha != confirmarSenha) {
-      _mostrarErro('As senhas não coincidem.');
-      return;
-    }
+  // Mesma regra do backend: pelo menos uma letra e um número
+  if (!RegExp(r'^(?=.*[0-9])(?=.*[a-zA-Z]).*$').hasMatch(senha)) {
+    _mostrarErro('A senha deve conter pelo menos uma letra e um número.');
+    return;
+  }
 
-    setState(() {
-      _carregando = true;
-    });
+  if (senha != confirmarSenha) {
+    _mostrarErro('As senhas não coincidem.');
+    return;
+  }
 
-    try {
-      await AuthService.enviarCodigoCadastro(email);
+  setState(() {
+    _carregando = true;
+  });
 
-      if (!mounted) return;
+  try {
+    // Limpa sessão antiga para não reaproveitar token de outro usuário
+    await AuthService.logout();
 
-      context.push(
-        '/confirmar-email',
-        extra: {
-          'nome': nome,
-          'email': email,
-          'telefone': telefone,
-          'senha': senha,
-        },
-      );
-    } catch (e) {
-      if (!mounted) return;
+    await AuthService.enviarCodigoCadastro(email);
 
-      _mostrarErro(
-        e.toString().replaceFirst('Exception: ', ''),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _carregando = false;
-        });
-      }
+    // Guarda os dados em memória até a tela de revisão
+    CadastroUsuario.id = const Uuid().v4();
+    CadastroUsuario.nome = nome;
+    CadastroUsuario.email = email;
+    CadastroUsuario.telefone = telefone;
+    CadastroUsuario.senha = senha;
+
+    if (!mounted) return;
+
+    context.push(
+      '/confirmar-email',
+      extra: {
+        'nome': nome,
+        'email': email,
+        'telefone': telefone,
+        'senha': senha,
+      },
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    _mostrarErro(
+      e.toString().replaceFirst('Exception: ', ''),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _carregando = false;
+      });
     }
   }
+}
 
   void _mostrarErro(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(

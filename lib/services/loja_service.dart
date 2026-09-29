@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:nhac_lojas/models/cadastro_loja.dart';
+import 'package:nhac_lojas/services/upload_service.dart';
 
 class LojaService {
   static const String baseUrl =
@@ -15,52 +16,19 @@ class LojaService {
   }) async {
     print('➡️ Criando loja: ${cadastro.nome}');
 
-    final payload = {
-      'nome': cadastro.nome,
-      'descricao': cadastro.descricao,
-      'categoria': cadastro.categoria,
-      'imagemUrl': cadastro.imagemUrl ?? '',
+    // 1. Envia a foto (se houver) e guarda a URL retornada
+    if (cadastro.imagemArquivo != null) {
+      print('🖼️ Enviando imagem da loja...');
+      cadastro.imagemUrl = await UploadService().enviarImagem(
+        arquivo: cadastro.imagemArquivo!,
+        token: token,
+      );
+      print('🖼️ Imagem enviada: ${cadastro.imagemUrl}');
+    }
 
-      'isAberto': cadastro.isAberto,
-
-      'dadosOperacionais': {
-        'taxaEntregaBase': cadastro.taxaEntregaBase,
-        'tempoEntregaMin': cadastro.tempoEntregaMin,
-        'tempoEntregaMax': cadastro.tempoEntregaMax,
-        'entregaPropria': cadastro.entregaPropria,
-        'retiradaNoLocal': cadastro.retiradaNoLocal,
-        'raioEntregaKm': cadastro.raioEntregaKm,
-      },
-
-      'endereco': {
-        'rua': cadastro.rua,
-        'numero': cadastro.numero,
-        'cidade': cadastro.cidade,
-        'estado': cadastro.estado,
-        'cep': cadastro.cep,
-        'bairro': cadastro.bairro,
-        'complemento': cadastro.complemento,
-      },
-
-      'horarios': {
-        'domingo': cadastro.domingo,
-        'segunda': cadastro.segunda,
-        'terca': cadastro.terca,
-        'quarta': cadastro.quarta,
-        'quinta': cadastro.quinta,
-        'sexta': cadastro.sexta,
-        'sabado': cadastro.sabado,
-      },
-
-      'formasPagamento': {
-        'aceitaDinheiro': cadastro.aceitaDinheiro,
-        'aceitaCredito': cadastro.aceitaCredito,
-        'aceitaDebito': cadastro.aceitaDebito,
-        'aceitaPix': cadastro.aceitaPix,
-        'aceitaValeRefeicao': cadastro.aceitaValeRefeicao,
-        'aceitaValeAlimentacao': cadastro.aceitaValeAlimentacao,
-      },
-    };
+    // 2. Monta o payload a partir do model
+    final payload = cadastro.toJson();
+    payload['imagemUrl'] = cadastro.imagemUrl ?? '';
 
     print('📦 Payload da loja:');
     print(jsonEncode(payload));
@@ -103,9 +71,6 @@ class LojaService {
     return body;
   }
 
-  // ============================================================
-  // ERROS
-  // ============================================================
 
   String _mensagemErro(http.Response response) {
     if (response.body.isEmpty) {
@@ -128,4 +93,3 @@ class LojaService {
     return 'Erro ${response.statusCode}: ${response.body}';
   }
 }
-
