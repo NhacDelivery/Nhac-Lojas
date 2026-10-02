@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
@@ -29,12 +33,14 @@ class _EnderecoLojaPageState extends State<EnderecoLojaPage> {
   late final TextEditingController cidadeController;
   late final TextEditingController estadoController;
 
+  bool _buscandoCep = false;
+
   @override
   void initState() {
     super.initState();
 
     cepController = TextEditingController(
-      text: widget.cadastro.cep ?? '',
+      text: (widget.cadastro.cep ?? '').replaceAll(RegExp(r'\D'), ''),
     );
 
     ruaController = TextEditingController(
@@ -75,8 +81,92 @@ class _EnderecoLojaPageState extends State<EnderecoLojaPage> {
     super.dispose();
   }
 
+  void _erro(String mensagem) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(mensagem)));
+  }
+
+  /// Consulta o ViaCEP e preenche rua, bairro, cidade e UF.
+  Future<void> _buscarCep() async {
+    final cep = cepController.text.replaceAll(RegExp(r'\D'), '');
+
+    if (cep.length != 8) {
+      _erro('Digite um CEP válido com 8 dígitos.');
+      return;
+    }
+
+    if (_buscandoCep) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() => _buscandoCep = true);
+
+    try {
+      final response = await http
+          .get(Uri.parse('https://viacep.com.br/ws/$cep/json/'))
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw Exception('Não foi possível consultar o CEP.');
+      }
+
+      final body = jsonDecode(response.body);
+
+      if (body is! Map<String, dynamic> || body['erro']?.toString() == 'true') {
+        throw Exception('CEP não encontrado.');
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        ruaController.text = body['logradouro']?.toString() ?? '';
+        bairroController.text = body['bairro']?.toString() ?? '';
+        cidadeController.text = body['localidade']?.toString() ?? '';
+        estadoController.text = body['uf']?.toString().toUpperCase() ?? '';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _erro(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _buscandoCep = false);
+      }
+    }
+  }
+
   void continuar() {
-    widget.cadastro.cep = cepController.text.trim();
+    FocusScope.of(context).unfocus();
+
+    final cep = cepController.text.replaceAll(RegExp(r'\D'), '');
+
+    // Campos obrigatórios no LojaCreateDTO.EnderecoDTO
+    if (cep.length != 8) {
+      _erro('Digite um CEP válido com 8 dígitos.');
+      return;
+    }
+    if (ruaController.text.trim().isEmpty) {
+      _erro('Informe a rua.');
+      return;
+    }
+    if (numeroController.text.trim().isEmpty) {
+      _erro('Informe o número.');
+      return;
+    }
+    if (bairroController.text.trim().isEmpty) {
+      _erro('Informe o bairro.');
+      return;
+    }
+    if (cidadeController.text.trim().isEmpty) {
+      _erro('Informe a cidade.');
+      return;
+    }
+    if (estadoController.text.trim().length != 2) {
+      _erro('Informe a UF com 2 letras (ex.: SP).');
+      return;
+    }
+
+    // Formato esperado pelo backend: XXXXX-XXX
+    widget.cadastro.cep = '${cep.substring(0, 5)}-${cep.substring(5)}';
     widget.cadastro.rua = ruaController.text.trim();
     widget.cadastro.numero = numeroController.text.trim();
     widget.cadastro.complemento = complementoController.text.trim();
@@ -156,11 +246,31 @@ class _EnderecoLojaPageState extends State<EnderecoLojaPage> {
                 NhacInputField(
                   controller: cepController,
                   hintText: '00000-000',
-                  suffixIcon: Icon(
-                    Icons.search_rounded,
-                    color: Colors.redAccent,
-                    size: 24.sp,
-                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(8),
+                  ],
+                  suffixIcon: _buscandoCep
+                      ? Padding(
+                          padding: EdgeInsets.all(14.r),
+                          child: SizedBox(
+                            width: 20.r,
+                            height: 20.r,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          onPressed: _buscarCep,
+                          icon: Icon(
+                            Icons.search_rounded,
+                            color: Colors.redAccent,
+                            size: 24.sp,
+                          ),
+                        ),
                 ),
 
                 SizedBox(height: 16.h),
@@ -300,6 +410,7 @@ class _EnderecoLojaPageState extends State<EnderecoLojaPage> {
                           NhacInputField(
                             controller: estadoController,
                             hintText: 'UF',
+                            inputFormatters: [LengthLimitingTextInputFormatter(2)],
                           ),
                         ],
                       ),
@@ -321,4 +432,3 @@ class _EnderecoLojaPageState extends State<EnderecoLojaPage> {
     );
   }
 }
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/services/auth_service.dart';
@@ -21,24 +22,24 @@ class ConfirmarEmailPage extends StatefulWidget {
   });
 
   @override
-  State<ConfirmarEmailPage> createState() =>
-      _ConfirmarEmailPageState();
+  State<ConfirmarEmailPage> createState() => _ConfirmarEmailPageState();
 }
 
 class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
   final List<TextEditingController> _controllers =
       List.generate(6, (_) => TextEditingController());
 
-  final List<FocusNode> _focusNodes =
-      List.generate(6, (_) => FocusNode());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   bool _carregando = false;
   bool _reenviando = false;
 
+  // Evita confirmar o mesmo código duas vezes caso o /registrar falhe
+  // e o usuário toque no botão novamente.
+  bool _emailConfirmado = false;
+
   String get _codigo {
-    return _controllers
-        .map((controller) => controller.text)
-        .join();
+    return _controllers.map((controller) => controller.text).join();
   }
 
   @override
@@ -72,9 +73,7 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
     if (codigo.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Digite o código completo de 6 dígitos.',
-          ),
+          content: Text('Digite o código completo de 6 dígitos.'),
         ),
       );
       return;
@@ -87,36 +86,41 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
     });
 
     try {
-      print('Código digitado: $codigo');
-      print('E-mail: ${widget.email}');
+      // 1) Confirma o e-mail (só se ainda não foi confirmado)
+      if (!_emailConfirmado) {
+        await AuthService.confirmarEmailCadastro(
+          email: widget.email,
+          codigo: codigo,
+        );
+        _emailConfirmado = true;
+      }
 
-      await AuthService.confirmarEmailCadastro(
+      // 2) Registra o usuário (o AuthService já salva o JWT)
+      await AuthService.registrar(
+        id: const Uuid().v4(),
+        nome: widget.nome,
         email: widget.email,
-        codigo: codigo,
+        telefone: widget.telefone,
+        senha: widget.senha,
       );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'E-mail confirmado com sucesso!',
-          ),
+          content: Text('Cadastro realizado com sucesso!'),
         ),
       );
 
-      context.push('/dados-basicos');
+      // go em vez de push: o usuário não deve voltar para a tela do código
+      context.go('/dados-basicos');
     } catch (e) {
       if (!mounted) return;
 
-      final mensagem = e
-          .toString()
-          .replaceFirst('Exception: ', '');
+      final mensagem = e.toString().replaceFirst('Exception: ', '');
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(mensagem),
-        ),
+        SnackBar(content: Text(mensagem)),
       );
     } finally {
       if (mounted) {
@@ -135,9 +139,10 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
     });
 
     try {
-      await AuthService.enviarCodigoCadastro(
-        widget.email,
-      );
+      await AuthService.enviarCodigoCadastro(widget.email);
+
+      // Novo código => precisa confirmar de novo
+      _emailConfirmado = false;
 
       if (!mounted) return;
 
@@ -150,22 +155,16 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Novo código enviado para seu e-mail.',
-          ),
+          content: Text('Novo código enviado para seu e-mail.'),
         ),
       );
     } catch (e) {
       if (!mounted) return;
 
-      final mensagem = e
-          .toString()
-          .replaceFirst('Exception: ', '');
+      final mensagem = e.toString().replaceFirst('Exception: ', '');
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(mensagem),
-        ),
+        SnackBar(content: Text(mensagem)),
       );
     } finally {
       if (mounted) {
@@ -203,12 +202,7 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                             width: 140.w,
                             height: 140.w,
                             decoration: const BoxDecoration(
-                              color: Color.fromARGB(
-                                255,
-                                255,
-                                213,
-                                213,
-                              ),
+                              color: Color.fromARGB(255, 255, 213, 213),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -217,19 +211,13 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                               color: Colors.redAccent,
                             ),
                           ),
-
                           Positioned(
                             right: 8.w,
                             bottom: 8.h,
                             child: Container(
                               padding: EdgeInsets.all(2.r),
                               decoration: const BoxDecoration(
-                                color: Color.fromARGB(
-                                  255,
-                                  255,
-                                  231,
-                                  229,
-                                ),
+                                color: Color.fromARGB(255, 255, 231, 229),
                                 shape: BoxShape.circle,
                               ),
                               child: Container(
@@ -275,8 +263,7 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                           ),
                           children: [
                             const TextSpan(
-                              text:
-                                  'Enviamos um código de confirmação para\n',
+                              text: 'Enviamos um código de confirmação para\n',
                             ),
                             TextSpan(
                               text: widget.email,
@@ -300,99 +287,70 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                       // Campos do código
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          6,
-                          (index) {
-                            return Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 3.w,
-                              ),
-                              child: SizedBox(
-                                width: 45.w,
-                                height: 55.h,
-                                child: TextField(
-                                  controller: _controllers[index],
-                                  focusNode: _focusNodes[index],
-                                  textAlign: TextAlign.center,
-                                  keyboardType:
-                                      TextInputType.number,
-                                  textInputAction:
-                                      index == 5
-                                          ? TextInputAction.done
-                                          : TextInputAction.next,
-                                  maxLength: 1,
-                                  style: TextStyle(
-                                    fontSize: 22.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        const Color(0xFF3D1B19),
-                                  ),
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter
-                                        .digitsOnly,
-                                  ],
-                                  decoration: InputDecoration(
-                                    counterText: '',
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding:
-                                        EdgeInsets.zero,
-                                    border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(
-                                        12.r,
-                                      ),
-                                      borderSide: BorderSide(
-                                        color:
-                                            Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    enabledBorder:
-                                        OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(
-                                        12.r,
-                                      ),
-                                      borderSide: BorderSide(
-                                        color:
-                                            Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    focusedBorder:
-                                        OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(
-                                        12.r,
-                                      ),
-                                      borderSide:
-                                          const BorderSide(
-                                        color: Colors.redAccent,
-                                        width: 2,
-                                      ),
-                                    ),
-                                  ),
-                                  onChanged: (value) {
-                                    _onChanged(
-                                      value,
-                                      index,
-                                    );
-
-                                    if (index == 5 &&
-                                        value.isNotEmpty) {
-                                      FocusScope.of(context)
-                                          .unfocus();
-                                    }
-                                  },
-                                  onSubmitted: (_) {
-                                    if (index == 5) {
-                                      _confirmarCodigo();
-                                    }
-                                  },
+                        children: List.generate(6, (index) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 3.w),
+                            child: SizedBox(
+                              width: 45.w,
+                              height: 55.h,
+                              child: TextField(
+                                controller: _controllers[index],
+                                focusNode: _focusNodes[index],
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                textInputAction: index == 5
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
+                                maxLength: 1,
+                                style: TextStyle(
+                                  fontSize: 22.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF3D1B19),
                                 ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: EdgeInsets.zero,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: const BorderSide(
+                                      color: Colors.redAccent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  _onChanged(value, index);
+
+                                  if (index == 5 && value.isNotEmpty) {
+                                    FocusScope.of(context).unfocus();
+                                  }
+                                },
+                                onSubmitted: (_) {
+                                  if (index == 5) {
+                                    _confirmarCodigo();
+                                  }
+                                },
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        }),
                       ),
 
                       SizedBox(height: 16.h),
@@ -413,8 +371,7 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                         padding: EdgeInsets.all(16.r),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(20.r),
+                          borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: Text.rich(
                           TextSpan(
@@ -424,22 +381,17 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                               fontWeight: FontWeight.w500,
                             ),
                             children: [
-                              const TextSpan(
-                                text: 'Não recebeu o código? ',
-                              ),
+                              const TextSpan(text: 'Não recebeu o código? '),
                               WidgetSpan(
                                 child: GestureDetector(
-                                  onTap: _reenviando
-                                      ? null
-                                      : _reenviarCodigo,
+                                  onTap: _reenviando ? null : _reenviarCodigo,
                                   child: Text(
                                     _reenviando
                                         ? 'Enviando...'
                                         : 'Reenviar código',
                                     style: TextStyle(
                                       color: Colors.redAccent,
-                                      fontWeight:
-                                          FontWeight.bold,
+                                      fontWeight: FontWeight.bold,
                                       fontSize: 14.sp,
                                     ),
                                   ),
@@ -456,11 +408,9 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                       // Botão
                       ButtonNhac(
                         texto: _carregando
-                            ? 'Validando...'
+                            ? 'Cadastrando...'
                             : 'Confirmar código',
-                        onTap: _carregando
-                            ? null
-                            : _confirmarCodigo,
+                        onTap: _carregando ? null : _confirmarCodigo,
                       ),
                     ],
                   ),

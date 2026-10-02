@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,11 +27,66 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
   final ImagePicker _picker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+    // Atualiza o contador de caracteres da descrição
+    descricaoController.addListener(() => setState(() {}));
+  }
+
+  @override
   void dispose() {
     nomeController.dispose();
     descricaoController.dispose();
     tipoCulinariaController.dispose();
     super.dispose();
+  }
+
+  void _erro(String mensagem) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(mensagem)));
+  }
+
+  void _continuar() {
+    FocusScope.of(context).unfocus();
+
+    final nome = nomeController.text.trim();
+    final descricao = descricaoController.text.trim();
+    final categoria = tipoCulinariaController.text.trim();
+
+    // O backend exige a imagem (imagemUrl é @NotBlank no LojaCreateDTO)
+    if (_imagem == null) {
+      _erro('Adicione uma foto de perfil da loja.');
+      return;
+    }
+
+    // Mesmas regras do backend: nome entre 3 e 100 caracteres
+    if (nome.length < 3) {
+      _erro('O nome da loja deve ter pelo menos 3 caracteres.');
+      return;
+    }
+
+    if (nome.length > 100) {
+      _erro('O nome da loja deve ter no máximo 100 caracteres.');
+      return;
+    }
+
+    if (categoria.isEmpty) {
+      _erro('Selecione a categoria da loja.');
+      return;
+    }
+
+    final cadastro = CadastroLoja();
+
+    cadastro.nome = nome;
+    cadastro.descricao = descricao;
+    cadastro.categoria = categoria;
+    cadastro.imagemArquivo = _imagem; // foto escolhida
+
+    context.push(
+      '/endereco-loja',
+      extra: cadastro,
+    );
   }
 
   Future<void> _selecionarImagem(ImageSource source) async {
@@ -223,12 +279,13 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                 SizedBox(height: 4.h),
                 NhacInputField(
                   hintText: 'Conte um pouco sobre a sua loja...',
+                  inputFormatters: [LengthLimitingTextInputFormatter(150)],
                   controller: descricaoController,
                 ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    '0/150',
+                    '${descricaoController.text.length}/150',
                     style: TextStyle(color: Colors.grey, fontSize: 12.sp),
                   ),
                 ),
@@ -295,19 +352,7 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                 SizedBox(height: 24.h),
                 ButtonNhac(
                   texto: 'Continuar',
-                  onTap: () {
-                    final cadastro = CadastroLoja();
-
-                    cadastro.nome = nomeController.text.trim();
-                    cadastro.descricao = descricaoController.text.trim();
-                    cadastro.categoria = tipoCulinariaController.text.trim();
-                    cadastro.imagemArquivo = _imagem; // foto escolhida
-
-                    context.push(
-                      '/endereco-loja',
-                      extra: cadastro,
-                    );
-                  },
+                  onTap: _continuar,
                 ),
               ],
             ),

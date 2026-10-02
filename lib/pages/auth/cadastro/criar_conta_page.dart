@@ -81,12 +81,10 @@ Future<void> _continuar() async {
   });
 
   try {
-    // Limpa sessão antiga para não reaproveitar token de outro usuário
     await AuthService.logout();
 
     await AuthService.enviarCodigoCadastro(email);
 
-    // Guarda os dados em memória até a tela de revisão
     CadastroUsuario.id = const Uuid().v4();
     CadastroUsuario.nome = nome;
     CadastroUsuario.email = email;
