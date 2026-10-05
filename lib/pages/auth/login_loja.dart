@@ -15,94 +15,114 @@ class LoginLoja extends StatefulWidget {
 }
 
 class _LoginLojaState extends State<LoginLoja> {
-final _emailController = TextEditingController();
-final _senhaController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
 
-bool _senhaVisivel = false;
-bool _carregando = false;
+  bool _senhaVisivel = false;
+  bool _carregando = false;
 
-@override
-void dispose() {
-  _emailController.dispose();
-  _senhaController.dispose();
-  super.dispose();
-}
-Future<void> _fazerLogin() async {
-  final email = _emailController.text.trim();
-  final senha = _senhaController.text;
-
-  if (email.isEmpty) {
-    _mostrarErro('Digite seu e-mail ou telefone.');
-    return;
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
   }
 
-  if (senha.isEmpty) {
-    _mostrarErro('Digite sua senha.');
-    return;
-  }
+  Future<void> _fazerLogin() async {
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text;
 
-  setState(() {
-    _carregando = true;
-  });
+    if (email.isEmpty) {
+      _mostrarErro('Digite seu e-mail.');
+      return;
+    }
 
-  try {
-    final resultado = await AuthService.login(
-      email: email,
-      senha: senha,
-    );
+    if (senha.isEmpty) {
+      _mostrarErro('Digite sua senha.');
+      return;
+    }
 
-    debugPrint('LOGIN REALIZADO: $resultado');
+    setState(() {
+      _carregando = true;
+    });
 
-    if (!mounted) return;
+    try {
+      final resultado = await AuthService.login(
+        email: email,
+        senha: senha,
+      );
 
-    context.go('/home');
-  } catch (e) {
-    if (!mounted) return;
+      debugPrint('LOGIN REALIZADO: $resultado');
 
-    _mostrarErro(
-      e.toString().replaceFirst('Exception: ', ''),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        _carregando = false;
-      });
+      if (!mounted) return;
+
+      context.go('/home');
+    } catch (e) {
+      if (!mounted) return;
+
+      _mostrarErro(
+        e.toString().replaceFirst('Exception: ', ''),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
     }
   }
-}
-void _mostrarErro(String mensagem) {
+
+  void _mostrarErro(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem),
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
+            padding: EdgeInsets.fromLTRB(
+              20.w,
+              16.h,
+              20.w,
+              20.h,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const BackArrow(targetRoute: '/bem-vindo'),
+                    const BackArrow(
+                      targetRoute: '/bem-vindo',
+                    ),
                     SizedBox(width: 12.w),
                     Text(
                       'Entrar',
-                      style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
+
                 SizedBox(height: 32.h),
+
                 Text(
                   'Acesse sua conta',
-                  style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+
                 SizedBox(height: 8.h),
+
                 Text(
                   'Digite seus dados para entrar.',
                   style: TextStyle(
@@ -111,29 +131,47 @@ void _mostrarErro(String mensagem) {
                     color: Colors.grey,
                   ),
                 ),
+
                 SizedBox(height: 24.h),
+
                 Text(
-                  'E-mail ou telefone',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4.h),
-                 NhacInputField(
-                  hintText: 'Email',
-                  controller: _emailController
+                  'E-mail',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+
+                SizedBox(height: 4.h),
+
+                NhacInputField(
+                  hintText: 'E-mail',
+                  controller: _emailController,
+                ),
+
                 SizedBox(height: 16.h),
+
                 Text(
                   'Senha',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+
                 SizedBox(height: 4.h),
+
                 NhacInputField(
                   hintText: 'Senha',
                   obscureText: !_senhaVisivel,
                   controller: _senhaController,
                   suffixIcon: IconButton(
                     icon: _senhaVisivel
-                        ? Icon(Icons.visibility, color: const Color(0xFFFF6961), size: 24.sp)
+                        ? Icon(
+                            Icons.visibility,
+                            color: const Color(0xFFFF6961),
+                            size: 24.sp,
+                          )
                         : SvgPicture.asset(
                             'assets/images/olho-fechado.svg',
                             width: 24.w,
@@ -150,27 +188,32 @@ void _mostrarErro(String mensagem) {
                     },
                   ),
                 ),
-                SizedBox(
-                  height: 35.h,
-                  width: double.infinity,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      child: Text(
-                        'Esqueceu sua senha?',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: const Color(0xFFFF6961),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      onPressed: () {
-                        context.push('/recuperar-senha');
-                      },
-                    ),
-                  ),
-                ),
+
+            SizedBox(
+                height: 35.h,
+                width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                   onPressed: _carregando
+                          ? null
+                          : () {
+                              context.push('/recuperar-senha');
+                            },
+                    child: Text(
+                      'Esqueceu sua senha?',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: const Color(0xFFFF6961),
+                        fontWeight: FontWeight.w600,
+                      ), // TextStyle
+                    ), // Text
+                  ), // TextButton
+                ), // Align
+              ), // SizedBox
+
                 SizedBox(height: 12.h),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -181,10 +224,15 @@ void _mostrarErro(String mensagem) {
                       ),
                     ),
                     Text(
-                      "Ou",
+                      'Ou',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: const Color.fromARGB(255, 99, 99, 99),
+                        color: const Color.fromARGB(
+                          255,
+                          99,
+                          99,
+                          99,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -195,7 +243,9 @@ void _mostrarErro(String mensagem) {
                     ),
                   ],
                 ),
+
                 SizedBox(height: 24.h),
+
                 ButtonNhac(
                   texto: 'Continuar com o Google',
                   isSecundario: true,
@@ -204,14 +254,22 @@ void _mostrarErro(String mensagem) {
                     height: 24.h,
                     width: 24.w,
                   ),
-                  onTap: () => context.go('/home'),
+                  onTap: _carregando
+                      ? () {}
+                      : () {
+                          context.go('/home');
+                        },
                 ),
-                SizedBox(height: 32.h),
-                ButtonNhac(
-                  texto: 'Continuar',
-             //      onTap: _fazerLogin,
-                  onTap: () => context.go('/home'),
 
+                SizedBox(height: 32.h),
+
+                ButtonNhac(
+                  texto: _carregando
+                      ? 'Entrando...'
+                      : 'Continuar',
+                  onTap: _carregando
+                      ? () {}
+                      : _fazerLogin,
                 ),
               ],
             ),
