@@ -101,7 +101,7 @@ class _HorarioFuncionamentoPageState
 
                 ItemHorarioFuncionamento(
                   diaSemana: 'Seg',
-                  ativoInicial: true,
+                  ativoInicial: false,
                   onHorarioChanged: (horario) {
                     segunda = horario;
                   },
@@ -111,7 +111,7 @@ class _HorarioFuncionamentoPageState
 
                 ItemHorarioFuncionamento(
                   diaSemana: 'Ter',
-                  ativoInicial: true,
+                  ativoInicial: false,
                   onHorarioChanged: (horario) {
                     terca = horario;
                   },
@@ -121,7 +121,7 @@ class _HorarioFuncionamentoPageState
 
                 ItemHorarioFuncionamento(
                   diaSemana: 'Qua',
-                  ativoInicial: true,
+                  ativoInicial: false,
                   onHorarioChanged: (horario) {
                     quarta = horario;
                   },
@@ -131,7 +131,7 @@ class _HorarioFuncionamentoPageState
 
                 ItemHorarioFuncionamento(
                   diaSemana: 'Qui',
-                  ativoInicial: true,
+                  ativoInicial: false,
                   onHorarioChanged: (horario) {
                     quinta = horario;
                   },
@@ -141,7 +141,7 @@ class _HorarioFuncionamentoPageState
 
                 ItemHorarioFuncionamento(
                   diaSemana: 'Sex',
-                  ativoInicial: true,
+                  ativoInicial: false,
                   onHorarioChanged: (horario) {
                     sexta = horario;
                   },
@@ -151,7 +151,7 @@ class _HorarioFuncionamentoPageState
 
                 ItemHorarioFuncionamento(
                   diaSemana: 'Sáb',
-                  ativoInicial: true,
+                  ativoInicial: false,
                   onHorarioChanged: (horario) {
                     sabado = horario;
                   },
