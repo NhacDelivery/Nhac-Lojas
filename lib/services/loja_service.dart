@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:nhac_lojas/models/cadastro_loja.dart';
 import 'package:nhac_lojas/services/upload_service.dart';
-
+import 'package:nhac_lojas/models/loja_model.dart';
 class LojaService {
   static const String baseUrl = 'https://backend-nhac.onrender.com';
 
@@ -122,4 +122,46 @@ class LojaService {
 
     return 'Erro ${response.statusCode}: ${response.body}';
   }
+
+  Future<LojaModel> buscarMinhaLoja(String token) async {
+  print('➡️ Buscando minha loja...');
+
+  try {
+    final response = await http
+        .get(
+          Uri.parse('$lojasUrl/minha-loja'),
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 60));
+
+    print('⬅️ Status minha loja: ${response.statusCode}');
+    print('⬅️ Resposta minha loja: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception(_mensagemErro(response));
+    }
+
+    if (response.body.isEmpty) {
+      throw Exception('O servidor não retornou os dados da loja.');
+    }
+
+    final body = jsonDecode(response.body);
+
+    if (body is! Map<String, dynamic>) {
+      throw Exception('Resposta inválida ao buscar a loja.');
+    }
+
+    return LojaModel.fromJson(body);
+  } on TimeoutException {
+    throw Exception(
+      'O servidor demorou para responder. Tente novamente em instantes.',
+    );
+  } on SocketException {
+    throw Exception('Sem conexão com a internet.');
+  }
 }
+}
+
