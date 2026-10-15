@@ -5,7 +5,7 @@ import 'package:http_parser/http_parser.dart';
 
 class UploadService {
   static const String uploadUrl =
-      'https://backend-nhac.onrender.com/api/v1/uploads/imagem';
+      'https://backend-nhac.cloud.run/api/v1/uploads/imagem';
 
   Future<String> enviarImagem({
     required File arquivo,
