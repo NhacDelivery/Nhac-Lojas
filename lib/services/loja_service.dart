@@ -7,7 +7,7 @@ import 'package:nhac_lojas/models/cadastro_loja.dart';
 import 'package:nhac_lojas/services/upload_service.dart';
 import 'package:nhac_lojas/models/loja_model.dart';
 class LojaService {
-  static const String baseUrl = 'https://backend-nhac.onrender.com';
+  static const String baseUrl = 'https://backend-nhac.cloud.run';
 
   static const String lojasUrl = '$baseUrl/api/v1/lojas';
 

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const String baseUrl =
-      'https://backend-nhac.onrender.com';
+      'https://backend-nhac.cloud.run';
 
   static const String authUrl =
       '$baseUrl/api/v1/auth';

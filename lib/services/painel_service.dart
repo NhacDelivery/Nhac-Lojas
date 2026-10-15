@@ -6,7 +6,7 @@ import '../models/painel_model.dart';
 
 class PainelService {
   static const String baseUrl =
-      'https://backend-nhac.onrender.com/api/v1';
+      'https://backend-nhac.cloud.run/api/v1';
 
   Future<PainelResumoModel> buscarResumo(String token) async {
     final response = await http.get(

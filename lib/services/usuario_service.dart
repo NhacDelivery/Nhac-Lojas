@@ -7,7 +7,7 @@ import 'auth_service.dart';
 
 class UsuarioService {
   static const String baseUrl =
-      'https://backend-nhac.onrender.com';
+      'https://backend-nhac.cloud.run';
 
   static const String usuariosUrl =
       '$baseUrl/api/v1/usuarios';

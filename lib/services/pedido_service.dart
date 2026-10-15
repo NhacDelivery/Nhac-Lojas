@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/pedido_resumo_model.dart';
 class PedidoService {
   static const String baseUrl =
-      'https://backend-nhac.onrender.com/api/v1';
+      'https://backend-nhac.cloud.run/api/v1';
 
   Future<List<PedidoResumoLojistaModel>> buscarPedidos({
     required String token,
