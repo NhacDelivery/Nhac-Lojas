@@ -53,7 +53,6 @@ class BallonChat extends StatelessWidget {
               ? CrossAxisAlignment.end
               : CrossAxisAlignment.start,
           children: [
-            // --- O BALÃO DE MENSAGEM ---
             Container(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
               decoration: BoxDecoration(
@@ -80,7 +79,6 @@ class BallonChat extends StatelessWidget {
 
             SizedBox(height: 4.h),
 
-            // --- HORÁRIO E CHECK DE LEITURA ---
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
               child: Row(

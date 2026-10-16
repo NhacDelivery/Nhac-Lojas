@@ -38,7 +38,6 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
           padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
           child: Column(
             children: [
-              // 1. Cabeçalho
               Row(
                 children: [
                   const BackArrow(targetRoute: '/mais'),
@@ -54,11 +53,9 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
               ),
               SizedBox(height: 24.h),
 
-              // 2. Campo de busca
               SearchContainer(label: 'Buscar produto...'),
               SizedBox(height: 12.h),
 
-              // 3. Tags de filtro horizontais
               SizedBox(
                 height: 36.h,
                 child: ListView(
@@ -73,7 +70,6 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
               ),
               SizedBox(height: 20.h),
 
-              // 4. Lista Rolável com os produtos (Substitui o Container fixo + Spacer)
               Expanded(
                 child: ListView(
                   physics: const BouncingScrollPhysics(),
@@ -187,7 +183,6 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
                 ),
               ),
 
-              // 5. Botão de Ação fixo no rodapé
               SizedBox(height: 12.h),
               ButtonNhac(
                 texto: '+ Adicionar produto',
