@@ -13,9 +13,6 @@ class AuthService {
   static const String _tokenKey = 'jwt_token';
   static const String _usuarioIdKey = 'usuario_id';
 
-  // =========================
-  // TOKEN
-  // =========================
 
   static Future<void> salvarToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -29,9 +26,6 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
 
-  // =========================
-  // ID DO USUÁRIO
-  // =========================
 
   static Future<void> salvarUsuarioId(String usuarioId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -45,9 +39,6 @@ class AuthService {
     return prefs.getString(_usuarioIdKey);
   }
 
-  // =========================
-  // REMOVER AUTENTICAÇÃO
-  // =========================
 
   static Future<void> removerToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,9 +54,6 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
-  // =========================
-  // LOGIN
-  // =========================
 
   static Future<Map<String, dynamic>> login({
     required String email,
@@ -104,9 +92,6 @@ class AuthService {
       );
     }
 
-    // =========================
-    // TOKEN
-    // =========================
 
     final token = body['token']?.toString();
 
@@ -116,9 +101,6 @@ class AuthService {
       );
     }
 
-    // =========================
-    // ID DO USUÁRIO
-    // =========================
 
     final usuarioId = body['usuarioId']?.toString();
     if (usuarioId == null || usuarioId.isEmpty) {
@@ -134,17 +116,11 @@ class AuthService {
     return body;
   }
 
-  // =========================
-  // LOGOUT
-  // =========================
 
   static Future<void> logout() async {
     await removerToken();
   }
 
-  // =========================
-  // OUTROS MÉTODOS
-  // =========================
 
   static Future<void> enviarCodigoCadastro(String email) async {
     print('➡️ Enviando código para: $email');

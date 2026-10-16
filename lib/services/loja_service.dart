@@ -31,8 +31,7 @@ class LojaService {
         print('🖼️ Imagem enviada: ${cadastro.imagemUrl}');
       }
 
-      // 2. Monta o payload sem campos nulos ou vazios
-      // (antes imagemUrl ia como '' quando não havia foto).
+      // Monta o payload sem campos nulos ou vazios.
       final payload = _semVazios(cadastro.toJson());
 
       print('📦 Payload da loja:');

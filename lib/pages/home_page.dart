@@ -187,9 +187,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // ERRO
-  // ============================================================
 
   Widget _buildErro({
     String? mensagem,
@@ -238,9 +235,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // CABEÇALHO
-  // ============================================================
 
   Widget _buildCabecalho({
     required UsuarioModel usuario,
@@ -300,9 +294,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // RESUMO
-  // ============================================================
 
   Widget _buildTituloSecao({
     required String titulo,
@@ -417,9 +408,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // FATURAMENTO
-  // ============================================================
 
   Widget _buildFaturamento(
     PainelResumoModel painel,
@@ -605,9 +593,6 @@ class _HomePageState extends State<HomePage> {
     return maior * 1.2;
   }
 
-  // ============================================================
-  // AVALIAÇÃO
-  // ============================================================
 
   Widget _buildAvaliacao({
     required double avaliacao,
@@ -677,9 +662,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // PEDIDOS RECENTES
-  // ============================================================
 
   Widget _buildPedidosRecentes(
     PainelResumoModel painel,
@@ -768,9 +750,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // IMAGEM DA LOJA
-  // ============================================================
 
   Widget _buildImagemLoja(
     LojaModel loja,
@@ -834,9 +813,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ============================================================
-  // FORMATADORES
-  // ============================================================
 
   String _formatarMoeda(double valor) {
     return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
