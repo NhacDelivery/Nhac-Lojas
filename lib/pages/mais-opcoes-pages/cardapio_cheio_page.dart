@@ -330,11 +330,8 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
               },
               onTap: () {
                 context.push(
-                  '/cadastrar-produtos',
-                  extra: {
-                    'editar': true,
-                    'produtoId': produto.id,
-                  },
+                  '/editar-produtos',
+                  extra: produto,
                 );
               },
               exibirSeta: true,

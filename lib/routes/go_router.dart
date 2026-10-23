@@ -42,7 +42,8 @@ import 'package:nhac_lojas/pages/order_details_page.dart';
 import 'package:nhac_lojas/pages/order_page.dart';
 import 'package:nhac_lojas/pages/update_order_status.dart';
 import 'package:nhac_lojas/models/cadastro_loja.dart';
-
+import 'package:nhac_lojas/pages/mais-opcoes-pages/editar_produtos_page.dart';
+import 'package:nhac_lojas/models/produto_lojista_model.dart';
 final GoRouter appRouter = GoRouter(
   initialLocation: '/bem-vindo',
   routes: [
@@ -80,6 +81,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/recuperar-senha',
       builder: (context, state) => const RecuperarSenha(),
+    ),
+    GoRoute(
+      path: '/editar-produtos',
+      builder: (context, state) {
+        final produto = state.extra as ProdutoLojistaModel;
+
+        return EditarProdutosPage(
+          produto: produto,
+        );
+      },
     ),
     GoRoute(
       path: '/link-recuperacao',
