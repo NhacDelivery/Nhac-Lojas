@@ -1,4 +1,3 @@
-```yaml
 name: Build APK Flutter
 
 on:
@@ -43,4 +42,3 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
-```
