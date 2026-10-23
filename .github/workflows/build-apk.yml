@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build:
+    name: Compilar APK Android
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +28,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
 
       - name: Instalar dependências
         run: flutter pub get
@@ -35,10 +35,10 @@ jobs:
       - name: Compilar APK
         run: flutter build apk --release
 
-      - name: Disponibilizar APK para download
+      - name: Salvar APK para download
         uses: actions/upload-artifact@v4
         with:
-          name: aplicativo-android
+          name: Nhac-Lojas-APK
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
