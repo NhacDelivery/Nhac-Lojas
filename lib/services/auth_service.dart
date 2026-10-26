@@ -171,96 +171,112 @@ class AuthService {
     }
   }
 
-  static Future<void> confirmarEmailCadastro({
-    required String email,
-    required String codigo,
-  }) async {
-    print('➡️ Confirmando código do e-mail');
+  static Future<String> confirmarEmailCadastro({
+  required String email,
+  required String codigo,
+}) async {
+  final response = await http
+      .post(
+        Uri.parse('$authUrl/confirmar-email-cadastro'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email.trim(),
+          'codigo': codigo.trim(),
+        }),
+      )
+      .timeout(
+        const Duration(seconds: 30),
+      );
 
-    final response = await http
-        .post(
-          Uri.parse('$authUrl/confirmar-email-cadastro'),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'email': email,
-            'codigo': codigo,
-          }),
-        )
-        .timeout(
-          const Duration(seconds: 30),
-        );
+  print('⬅️ Status confirmação: ${response.statusCode}');
+  print('⬅️ Resposta confirmação: ${response.body}');
 
-    print('⬅️ Status: ${response.statusCode}');
-    print('⬅️ Resposta: ${response.body}');
-
-    if (response.statusCode != 200) {
-      throw Exception(_mensagemErro(response));
-    }
+  if (response.statusCode != 200) {
+    throw Exception(_mensagemErro(response));
   }
 
+  final body = jsonDecode(response.body);
+
+  if (body is! Map<String, dynamic>) {
+    throw Exception('Resposta inválida ao confirmar o e-mail.');
+  }
+
+  final tokenCadastro = body['tokenCadastro']?.toString();
+
+  if (tokenCadastro == null || tokenCadastro.isEmpty) {
+    throw Exception(
+      'O backend confirmou o e-mail, mas não retornou o token de cadastro.',
+    );
+  }
+
+  return tokenCadastro;
+}
   static Future<Map<String, dynamic>> registrar({
-    required String id,
-    required String nome,
-    required String email,
-    required String telefone,
-    required String senha,
-  }) async {
-    print('➡️ Registrando usuário: $email');
+  required String id,
+  required String nome,
+  required String email,
+  required String telefone,
+  required String senha,
+  required String tokenCadastro,
+}) async {
+  print('➡️ Registrando usuário: $email');
 
-    final response = await http
-        .post(
-          Uri.parse('$authUrl/registrar'),
-          headers: {
-            'Content-Type': 'application/json',
-            'X-App-Origin': 'loja',
-          },
-          body: jsonEncode({
-            'id': id,
-            'nome': nome,
-            'email': email,
-            'telefone': telefone,
-            'senha': senha,
-          }),
-        )
-        .timeout(
-          const Duration(seconds: 30),
-        );
-
-    print('⬅️ Status: ${response.statusCode}');
-    print('⬅️ Resposta: ${response.body}');
-
-    if (response.statusCode != 201) {
-      throw Exception(_mensagemErro(response));
-    }
-
-    final body = jsonDecode(response.body);
-
-    if (body is! Map<String, dynamic>) {
-      throw Exception(
-        'Resposta inválida da API de autenticação.',
+  final response = await http
+      .post(
+        Uri.parse('$authUrl/registrar'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-App-Origin': 'loja',
+        },
+        body: jsonEncode({
+          'id': id,
+          'nome': nome,
+          'email': email.trim(),
+          'telefone': telefone,
+          'senha': senha,
+          'tokenCadastro': tokenCadastro,
+        }),
+      )
+      .timeout(
+        const Duration(seconds: 30),
       );
-    }
 
-    final token = body['token']?.toString();
+  print('⬅️ Status registro: ${response.statusCode}');
+  print('⬅️ Resposta registro: ${response.body}');
 
-    if (token == null || token.isEmpty) {
-      throw Exception(
-        'Usuário cadastrado, mas a API não retornou o token JWT.',
-      );
-    }
-
-    await salvarToken(token);
-
-    final usuarioId = body['id']?.toString();
-
-    if (usuarioId != null && usuarioId.isNotEmpty) {
-      await salvarUsuarioId(usuarioId);
-    }
-
-    return body;
+  if (response.statusCode != 201) {
+    throw Exception(_mensagemErro(response));
   }
+
+  final body = jsonDecode(response.body);
+
+  if (body is! Map<String, dynamic>) {
+    throw Exception('Resposta inválida da API de autenticação.');
+  }
+
+  final token = body['token']?.toString();
+
+  if (token == null || token.isEmpty) {
+    throw Exception(
+      'Usuário cadastrado, mas a API não retornou o token JWT.',
+    );
+  }
+
+  await salvarToken(token);
+
+  // O backend informa que a identidade é gerada pelo servidor.
+  // Por isso, priorizamos usuarioId na resposta.
+  final usuarioId =
+      body['usuarioId']?.toString() ?? body['id']?.toString();
+
+  if (usuarioId != null && usuarioId.isNotEmpty) {
+    await salvarUsuarioId(usuarioId);
+  }
+
+  return body;
+}
 
   static String _mensagemErro(http.Response response) {
     if (response.body.isEmpty) {

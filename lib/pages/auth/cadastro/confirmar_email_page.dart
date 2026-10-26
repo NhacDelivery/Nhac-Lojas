@@ -34,9 +34,8 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
   bool _carregando = false;
   bool _reenviando = false;
 
-  // Evita confirmar o mesmo código duas vezes caso o /registrar falhe
-  // e o usuário toque no botão novamente.
-  bool _emailConfirmado = false;
+  // Mantém o token entre tentativas caso o registro falhe.
+  String? _tokenCadastro;
 
   String get _codigo {
     return _controllers.map((controller) => controller.text).join();
@@ -68,7 +67,7 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
   }
 
   Future<void> _confirmarCodigo() async {
-    final codigo = _codigo;
+    final codigo = _codigo.trim();
 
     if (codigo.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,25 +85,27 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
     });
 
     try {
-      // 1) Confirma o e-mail (só se ainda não foi confirmado)
-      if (!_emailConfirmado) {
-        await AuthService.confirmarEmailCadastro(
-          email: widget.email,
-          codigo: codigo,
-        );
-        _emailConfirmado = true;
-      }
+      // Confirma o e-mail apenas se ainda não temos o token de cadastro.
+      // Assim, se o registro falhar, não consumimos o código novamente.
+      _tokenCadastro ??= await AuthService.confirmarEmailCadastro(
+        email: widget.email.trim(),
+        codigo: codigo,
+      );
 
-      // 2) Registra o usuário (o AuthService já salva o JWT)
+      // Conclui o cadastro usando o token devolvido pela confirmação.
       await AuthService.registrar(
         id: const Uuid().v4(),
-        nome: widget.nome,
-        email: widget.email,
-        telefone: widget.telefone,
+        nome: widget.nome.trim(),
+        email: widget.email.trim(),
+        telefone: widget.telefone.trim(),
         senha: widget.senha,
+        tokenCadastro: _tokenCadastro!,
       );
 
       if (!mounted) return;
+
+      // O token de cadastro não deve ser reutilizado depois do sucesso.
+      _tokenCadastro = null;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -112,7 +113,6 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
         ),
       );
 
-      // go em vez de push: o usuário não deve voltar para a tela do código
       context.go('/dados-basicos');
     } catch (e) {
       if (!mounted) return;
@@ -139,10 +139,10 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
     });
 
     try {
-      await AuthService.enviarCodigoCadastro(widget.email);
+      await AuthService.enviarCodigoCadastro(widget.email.trim());
 
-      // Novo código => precisa confirmar de novo
-      _emailConfirmado = false;
+      // Um novo código invalida qualquer token de confirmação anterior.
+      _tokenCadastro = null;
 
       if (!mounted) return;
 
@@ -356,7 +356,7 @@ class _ConfirmarEmailPageState extends State<ConfirmarEmailPage> {
                       SizedBox(height: 16.h),
 
                       Text(
-                        'O código expira em 15 minutos',
+                        'O código/token de confirmação expira em até 30 minutos',
                         style: TextStyle(
                           color: Colors.grey.shade600,
                           fontSize: 13.sp,

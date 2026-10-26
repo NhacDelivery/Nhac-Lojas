@@ -8,8 +8,8 @@ import 'package:nhac_lojas/components/filter_tag.dart';
 import 'package:nhac_lojas/components/register_steps.dart';
 import 'package:nhac_lojas/models/cadastro_loja.dart';
 import 'package:nhac_lojas/services/auth_service.dart';
-import '../../../services/loja_service.dart';
 import 'package:nhac_lojas/models/cadastro_usuario.dart';
+import '../../../services/loja_service.dart';
 
 class RevisarDadosPage extends StatefulWidget {
   final CadastroLoja cadastro;
@@ -29,64 +29,49 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
   bool _carregando = false;
 
   Future<void> finalizarCadastro() async {
-  if (_carregando) return;
+    if (_carregando) return;
 
-  setState(() => _carregando = true);
+    setState(() => _carregando = true);
 
-  try {
-    // Reaproveita token se já existir (ex.: retry após falha ao criar a loja)
-    String? token = await AuthService.obterToken();
+    try {
+      // Recupera o token de acesso do usuário autenticado.
+      final token = await AuthService.obterToken();
 
-    if (token == null || token.isEmpty) {
-      if (!CadastroUsuario.completo) {
+      if (token == null || token.isEmpty) {
         throw Exception(
-          'Dados do usuário não encontrados. Refaça o cadastro.',
+          'Token de acesso não encontrado. Faça login novamente.',
         );
       }
 
-      print('➡️ Registrando usuário e gerando token...');
-
-      final resposta = await AuthService.registrar(
-        id: CadastroUsuario.id!,
-        nome: CadastroUsuario.nome!,
-        email: CadastroUsuario.email!,
-        telefone: CadastroUsuario.telefone!,
-        senha: CadastroUsuario.senha!,
+      // Cria a loja utilizando o token de acesso.
+      await _lojaService.criarLoja(
+        cadastro: widget.cadastro,
+        token: token,
       );
 
-      token = resposta['token']?.toString();
-    }
+      // Limpa os dados temporários após concluir o cadastro.
+      CadastroUsuario.limpar();
 
-    if (token == null || token.isEmpty) {
-      throw Exception('Não foi possível obter o token de acesso.');
-    }
+      if (!mounted) return;
 
-    print('➡️ Enviando cadastro da loja...');
+      context.go('/loja-cadastrada');
+    } catch (e) {
+      if (!mounted) return;
 
-    await _lojaService.criarLoja(
-      cadastro: widget.cadastro,
-      token: token,
-    );
-
-    CadastroUsuario.limpar();
-
-    if (!mounted) return;
-    context.go('/loja-cadastrada');
-  } catch (e) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(e.toString().replaceFirst('Exception: ', '')),
-        backgroundColor: Colors.redAccent,
-      ),
-    );
-  } finally {
-    if (mounted) {
-      setState(() => _carregando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _carregando = false);
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -103,13 +88,10 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            
                 Row(
                   children: [
                     const BackArrow(),
-
                     SizedBox(width: 12.w),
-
                     Text(
                       'Cadastrar loja',
                       style: TextStyle(
@@ -149,6 +131,7 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
 
                 SizedBox(height: 18.h),
 
+                // Dados básicos
                 ContainerCardRevisao(
                   title: 'Dados básicos',
                   onEdit: () {},
@@ -219,12 +202,12 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
 
                 SizedBox(height: 18.h),
 
+                // Endereço
                 ContainerCardRevisao(
                   title: 'Endereço',
                   onEdit: () {},
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${widget.cadastro.rua ?? ''}, '
@@ -275,6 +258,7 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
 
                 SizedBox(height: 18.h),
 
+                // Entrega
                 ContainerCardRevisao(
                   title: 'Entrega',
                   onEdit: () {},
@@ -337,6 +321,7 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
 
                 SizedBox(height: 18.h),
 
+                // Pagamento
                 ContainerCardRevisao(
                   title: 'Pagamento',
                   onEdit: () {},
@@ -379,6 +364,7 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
 
                 SizedBox(height: 18.h),
 
+                // Horários
                 ContainerCardRevisao(
                   title: 'Horários',
                   onEdit: () {},
@@ -386,62 +372,56 @@ class _RevisarDadosPageState extends State<RevisarDadosPage> {
                     children: [
                       _HorarioRow(
                         dia: 'Domingo',
-                        horario:
-                            widget.cadastro.domingo ?? 'Fechado',
+                        horario: widget.cadastro.domingo ?? 'Fechado',
                       ),
 
                       SizedBox(height: 4.h),
 
                       _HorarioRow(
                         dia: 'Segunda',
-                        horario:
-                            widget.cadastro.segunda ?? 'Fechado',
+                        horario: widget.cadastro.segunda ?? 'Fechado',
                       ),
 
                       SizedBox(height: 4.h),
 
                       _HorarioRow(
                         dia: 'Terça',
-                        horario:
-                            widget.cadastro.terca ?? 'Fechado',
+                        horario: widget.cadastro.terca ?? 'Fechado',
                       ),
 
                       SizedBox(height: 4.h),
 
                       _HorarioRow(
                         dia: 'Quarta',
-                        horario:
-                            widget.cadastro.quarta ?? 'Fechado',
+                        horario: widget.cadastro.quarta ?? 'Fechado',
                       ),
 
                       SizedBox(height: 4.h),
 
                       _HorarioRow(
                         dia: 'Quinta',
-                        horario:
-                            widget.cadastro.quinta ?? 'Fechado',
+                        horario: widget.cadastro.quinta ?? 'Fechado',
                       ),
 
                       SizedBox(height: 4.h),
 
                       _HorarioRow(
                         dia: 'Sexta',
-                        horario:
-                            widget.cadastro.sexta ?? 'Fechado',
+                        horario: widget.cadastro.sexta ?? 'Fechado',
                       ),
 
                       SizedBox(height: 4.h),
 
                       _HorarioRow(
                         dia: 'Sábado',
-                        horario:
-                            widget.cadastro.sabado ?? 'Fechado',
+                        horario: widget.cadastro.sabado ?? 'Fechado',
                       ),
                     ],
                   ),
                 ),
 
                 SizedBox(height: 24.h),
+
                 ButtonNhac(
                   texto: _carregando
                       ? 'Cadastrando...'
@@ -471,8 +451,7 @@ class _HorarioRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           dia,
