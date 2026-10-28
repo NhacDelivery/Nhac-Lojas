@@ -1,11 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:nhac_lojas/components/container_nhac.dart';
-import 'package:nhac_lojas/components/filter_tag.dart';
 import 'package:nhac_lojas/components/icon_container.dart';
 import 'package:nhac_lojas/controllers/scroll_shell_controller.dart';
+
 import '../models/pedido_resumo_model.dart';
 import '../services/auth_service.dart';
 import '../services/pedido_service.dart';
@@ -24,7 +25,6 @@ class _OrderPageState extends State<OrderPage> {
 
   bool _carregando = true;
   String? _erro;
-
   String? _statusSelecionado;
 
   @override
@@ -34,22 +34,21 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   Future<void> _carregarPedidos() async {
-    try {
+    if (mounted) {
       setState(() {
         _carregando = true;
         _erro = null;
       });
+    }
 
+    try {
       final token = await AuthService.obterToken();
 
       if (token == null || token.isEmpty) {
-        throw Exception(
-          'Usuário não autenticado.',
-        );
+        throw Exception('Usuário não autenticado.');
       }
 
-      final pedidos =
-          await _pedidoService.buscarPedidos(
+      final pedidos = await _pedidoService.buscarPedidos(
         token: token,
         status: _statusSelecionado,
       );
@@ -70,9 +69,11 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  Future<void> _selecionarFiltro(
-    String? status,
-  ) async {
+  Future<void> _selecionarFiltro(String? status) async {
+    if (_statusSelecionado == status && !_carregando) {
+      return;
+    }
+
     setState(() {
       _statusSelecionado = status;
     });
@@ -97,13 +98,9 @@ class _OrderPageState extends State<OrderPage> {
           child: Column(
             children: [
               _buildCabecalho(),
-
               SizedBox(height: 24.h),
-
               _buildFiltros(),
-
               SizedBox(height: 24.h),
-
               _buildConteudo(),
             ],
           ),
@@ -114,8 +111,7 @@ class _OrderPageState extends State<OrderPage> {
 
   Widget _buildCabecalho() {
     return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'Pedidos',
@@ -124,7 +120,6 @@ class _OrderPageState extends State<OrderPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         IconContainer(
           icon: Icons.notifications_none_rounded,
         ),
@@ -141,30 +136,22 @@ class _OrderPageState extends State<OrderPage> {
             titulo: 'Todos',
             status: null,
           ),
-
           SizedBox(width: 8.w),
-
           _buildFiltro(
             titulo: 'Confirmar',
             status: 'PENDENTE',
           ),
-
           SizedBox(width: 8.w),
-
           _buildFiltro(
             titulo: 'Em preparo',
             status: 'PREPARANDO',
           ),
-
           SizedBox(width: 8.w),
-
           _buildFiltro(
             titulo: 'A caminho',
             status: 'SAIU_ENTREGA',
           ),
-
           SizedBox(width: 8.w),
-
           _buildFiltro(
             titulo: 'Entregue',
             status: 'ENTREGUE',
@@ -178,8 +165,7 @@ class _OrderPageState extends State<OrderPage> {
     required String titulo,
     required String? status,
   }) {
-    final selecionado =
-        _statusSelecionado == status;
+    final selecionado = _statusSelecionado == status;
 
     return GestureDetector(
       onTap: () => _selecionarFiltro(status),
@@ -189,11 +175,8 @@ class _OrderPageState extends State<OrderPage> {
           vertical: 9.h,
         ),
         decoration: BoxDecoration(
-          color: selecionado
-              ? Colors.redAccent
-              : Colors.white,
-          borderRadius:
-              BorderRadius.circular(20.r),
+          color: selecionado ? Colors.redAccent : Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: selecionado
                 ? Colors.redAccent
@@ -205,9 +188,7 @@ class _OrderPageState extends State<OrderPage> {
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w600,
-            color: selecionado
-                ? Colors.white
-                : Colors.black87,
+            color: selecionado ? Colors.white : Colors.black87,
           ),
         ),
       ),
@@ -236,7 +217,6 @@ class _OrderPageState extends State<OrderPage> {
       children: [
         for (int i = 0; i < _pedidos.length; i++) ...[
           _buildPedido(_pedidos[i]),
-
           if (i < _pedidos.length - 1)
             SizedBox(height: 12.h),
         ],
@@ -244,33 +224,26 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  Widget _buildPedido(
-    PedidoResumoLojistaModel pedido,
-  ) {
+  Widget _buildPedido(PedidoResumoLojistaModel pedido) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: ContainerNhac(
         codigo: int.tryParse(pedido.id) ?? 0,
         informacao: pedido.clienteNome,
-        quantidadeItens:
-            pedido.quantidadeItens,
+        quantidadeItens: pedido.quantidadeItens,
         preco: pedido.valorTotal,
-        horario: _formatarHorario(
-          pedido.criadoEm,
-        ),
-        situacao: _formatarStatus(
-          pedido.status,
-        ),
+        horario: _formatarHorario(pedido.criadoEm),
+        situacao: _formatarStatus(pedido.status),
         onTap: () {
+          // Envia o objeto completo para a próxima tela.
           context.push(
             '/order-details',
-            extra: pedido.id,
+            extra: pedido,
           );
         },
       ),
@@ -286,9 +259,7 @@ class _OrderPageState extends State<OrderPage> {
             Icons.error_outline,
             size: 45.sp,
           ),
-
           SizedBox(height: 12.h),
-
           Text(
             'Não foi possível carregar os pedidos.',
             textAlign: TextAlign.center,
@@ -297,9 +268,7 @@ class _OrderPageState extends State<OrderPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           SizedBox(height: 8.h),
-
           Text(
             _erro ?? 'Erro desconhecido.',
             textAlign: TextAlign.center,
@@ -308,14 +277,10 @@ class _OrderPageState extends State<OrderPage> {
               color: Colors.grey,
             ),
           ),
-
           SizedBox(height: 16.h),
-
           ElevatedButton(
             onPressed: _carregarPedidos,
-            child: const Text(
-              'Tentar novamente',
-            ),
+            child: const Text('Tentar novamente'),
           ),
         ],
       ),
@@ -332,9 +297,7 @@ class _OrderPageState extends State<OrderPage> {
             size: 50.sp,
             color: Colors.grey,
           ),
-
           SizedBox(height: 12.h),
-
           Text(
             'Nenhum pedido encontrado.',
             style: TextStyle(
@@ -348,43 +311,28 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  String _formatarStatus(
-    String status,
-  ) {
+  String _formatarStatus(String status) {
     switch (status) {
       case 'PENDENTE':
         return 'Confirmar';
-
       case 'PAGO':
         return 'Pago';
-
       case 'PREPARANDO':
         return 'Em preparo';
-
       case 'SAIU_ENTREGA':
         return 'A caminho';
-
       case 'ENTREGUE':
         return 'Entregue';
-
       case 'CANCELADO':
         return 'Cancelado';
-
       default:
         return status;
     }
   }
 
-  String _formatarHorario(
-    DateTime data,
-  ) {
-    final hora = data.hour
-        .toString()
-        .padLeft(2, '0');
-
-    final minuto = data.minute
-        .toString()
-        .padLeft(2, '0');
+  String _formatarHorario(DateTime data) {
+    final hora = data.hour.toString().padLeft(2, '0');
+    final minuto = data.minute.toString().padLeft(2, '0');
 
     return '$hora:$minuto';
   }

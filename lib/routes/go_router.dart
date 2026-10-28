@@ -44,6 +44,8 @@ import 'package:nhac_lojas/pages/update_order_status.dart';
 import 'package:nhac_lojas/models/cadastro_loja.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/editar_produtos_page.dart';
 import 'package:nhac_lojas/models/produto_lojista_model.dart';
+import 'package:nhac_lojas/models/pedido_resumo_model.dart';
+import 'package:flutter/material.dart';
 final GoRouter appRouter = GoRouter(
   initialLocation: '/bem-vindo',
   routes: [
@@ -175,13 +177,44 @@ final GoRouter appRouter = GoRouter(
       path: '/loja-cadastrada',
       builder: (context, state) => const LojaCadastradaPage(),
     ),
+    
+
     GoRoute(
       path: '/order-details',
-      builder: (context, state) => const OrderDetailsPage(),
+      builder: (context, state) {
+        final extra = state.extra;
+
+        if (extra is! PedidoResumoLojistaModel) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Pedido não informado.'),
+            ),
+          );
+        }
+
+        return OrderDetailsPage(
+          pedido: extra,
+        );
+      },
     ),
+
     GoRoute(
       path: '/update-status',
-      builder: (context, state) => const UpdateOrderStatus(),
+      builder: (context, state) {
+        final extra = state.extra;
+
+        if (extra is! PedidoResumoLojistaModel) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Pedido não informado.'),
+            ),
+          );
+        }
+
+        return UpdateOrderStatus(
+          pedido: extra,
+        );
+      },
     ),
     GoRoute(
       path: '/chat-open',
