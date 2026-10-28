@@ -7,11 +7,12 @@ import 'package:nhac_lojas/components/app_notification.dart';
 import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/container_nhac.dart';
-import 'package:nhac_lojas/components/order_status.dart';
 
 import '../models/pedido_resumo_model.dart';
+import '../services/auth_service.dart';
+import '../services/pedido_service.dart';
 
-class UpdateOrderStatus extends StatelessWidget {
+class UpdateOrderStatus extends StatefulWidget {
   final PedidoResumoLojistaModel pedido;
 
   const UpdateOrderStatus({
@@ -19,24 +20,55 @@ class UpdateOrderStatus extends StatelessWidget {
     required this.pedido,
   });
 
-  StatusPedido _converterStatus(String status) {
-    switch (status) {
-      case 'PENDENTE':
-        return StatusPedido.recebido;
-      case 'PREPARANDO':
-        return StatusPedido.emPreparo;
+  @override
+  State<UpdateOrderStatus> createState() =>
+      _UpdateOrderStatusState();
+}
 
-      // Ajuste estes casos conforme os valores existentes
-      // no enum StatusPedido do seu projeto.
-      default:
-        return StatusPedido.recebido;
-    }
+class _UpdateOrderStatusState extends State<UpdateOrderStatus> {
+  final PedidoService _pedidoService = PedidoService();
+
+  late String _statusSelecionado;
+
+  bool _salvando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _statusSelecionado = widget.pedido.status;
   }
+
+  final List<Map<String, String>> _statusDisponiveis = [
+    {
+      'valor': 'PENDENTE',
+      'titulo': 'Pendente / Confirmar',
+    },
+    {
+      'valor': 'PAGO',
+      'titulo': 'Pago',
+    },
+    {
+      'valor': 'PREPARANDO',
+      'titulo': 'Em preparo',
+    },
+    {
+      'valor': 'SAIU_ENTREGA',
+      'titulo': 'A caminho',
+    },
+    {
+      'valor': 'ENTREGUE',
+      'titulo': 'Entregue',
+    },
+    {
+      'valor': 'CANCELADO',
+      'titulo': 'Cancelado',
+    },
+  ];
 
   String _formatarStatus(String status) {
     switch (status) {
       case 'PENDENTE':
-        return 'Confirmar';
+        return 'Pendente / Confirmar';
       case 'PAGO':
         return 'Pago';
       case 'PREPARANDO':
@@ -52,6 +84,61 @@ class UpdateOrderStatus extends StatelessWidget {
     }
   }
 
+  Future<void> _salvarStatus() async {
+    if (_salvando) return;
+
+    if (_statusSelecionado == widget.pedido.status) {
+      showAppNotification(
+        context,
+        type: NotificationType.success,
+        message: 'O pedido já está nesse status.',
+      );
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+    });
+
+    try {
+      final token = await AuthService.obterToken();
+
+      if (token == null || token.isEmpty) {
+        throw Exception(
+          'Sessão expirada. Faça login novamente.',
+        );
+      }
+
+      await _pedidoService.atualizarStatus(
+        token: token,
+        pedidoId: widget.pedido.id,
+        status: _statusSelecionado,
+      );
+
+      if (!mounted) return;
+
+      showAppNotification(
+        context,
+        type: NotificationType.success,
+        message: 'Status atualizado com sucesso!',
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      showAppNotification(
+        context,
+        type: NotificationType.error,
+        message: e.toString(),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _salvando = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +149,7 @@ class UpdateOrderStatus extends StatelessWidget {
               20.w,
               16.h,
               20.w,
-              20.h,
+              30.h,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,53 +182,130 @@ class UpdateOrderStatus extends StatelessWidget {
                   child: ContainerNhac(
                     icon: Icons.receipt,
                     corIcone: Colors.redAccent,
-                    informacao: pedido.clienteNome,
-                    codigo: int.tryParse(pedido.id) ?? 0,
-                    quantidadeItens: pedido.quantidadeItens,
-                    preco: pedido.valorTotal,
-                    situacao: _formatarStatus(pedido.status),
+                    informacao: widget.pedido.clienteNome,
+                    codigo:
+                        int.tryParse(widget.pedido.id) ?? 0,
+                    quantidadeItens:
+                        widget.pedido.quantidadeItens,
+                    preco: widget.pedido.valorTotal,
+                    situacao:
+                        _formatarStatus(widget.pedido.status),
                     exibirCirculoSituacao: false,
                   ),
                 ),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 24.h),
 
                 Text(
-                  'ANDAMENTO DO PEDIDO',
+                  'STATUS ATUAL',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+
+                SizedBox(height: 8.h),
+
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: Colors.blue,
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Text(
+                          _formatarStatus(widget.pedido.status),
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 24.h),
+
+                Text(
+                  'NOVO STATUS',
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey,
+                    color: Colors.grey.shade700,
                   ),
                 ),
 
                 SizedBox(height: 12.h),
 
-                OrderStatus(
-                  statusAtual: _converterStatus(pedido.status),
-                  horarios: {
-                    StatusPedido.recebido: '',
-                    if (pedido.status == 'PREPARANDO')
-                      StatusPedido.emPreparo: '',
-                  },
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 4.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
+                    border: Border.all(
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _statusSelecionado,
+                      isExpanded: true,
+                      borderRadius: BorderRadius.circular(16.r),
+                      items: _statusDisponiveis.map((status) {
+                        return DropdownMenuItem<String>(
+                          value: status['valor']!,
+                          child: Text(status['titulo']!),
+                        );
+                      }).toList(),
+                      onChanged: _salvando
+                          ? null
+                          : (valor) {
+                              if (valor == null) return;
+
+                              setState(() {
+                                _statusSelecionado = valor;
+                              });
+                            },
+                    ),
+                  ),
                 ),
 
-                SizedBox(height: 48.h),
+                SizedBox(height: 36.h),
 
-                ButtonNhac(
-                  texto: 'Salvar status',
-                  onTap: () {
-                    // Ainda não persiste o status na API.
-                    // A gravação deverá ser feita pelo serviço
-                    // responsável por atualizar o pedido.
-                    context.pop();
+                SizedBox(
+                  width: double.infinity,
+                  child: ButtonNhac(
+                    texto: _salvando
+                        ? 'Salvando...'
+                        : 'Salvar status',
+                    onTap: _salvando ? null : _salvarStatus,
+                  ),
+                ),
 
-                    showAppNotification(
-                      context,
-                      type: NotificationType.success,
-                      message: 'Tela fechada. O status ainda não foi salvo na API.',
-                    );
-                  },
+                SizedBox(height: 12.h),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: _salvando
+                        ? null
+                        : () => context.pop(),
+                    child: const Text('Voltar'),
+                  ),
                 ),
               ],
             ),

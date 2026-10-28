@@ -7,6 +7,66 @@ class PedidoService {
   static const String baseUrl =
       'https://backend-nhac.cloud.run/api/v1';
 
+
+
+  Future<void> atualizarStatus({
+    required String token,
+    required String pedidoId,
+    required String status,
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/pedidos/$pedidoId/status',
+    );
+
+    final response = await http.patch(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'status': status,
+      }),
+    );
+
+    if (response.statusCode == 204 ||
+        response.statusCode == 200) {
+      return;
+    }
+
+    if (response.statusCode == 400) {
+      throw Exception(
+        'Status inválido ou atualização não permitida.',
+      );
+    }
+
+    if (response.statusCode == 401) {
+      throw Exception(
+        'Sessão expirada. Faça login novamente.',
+      );
+    }
+
+    if (response.statusCode == 403) {
+      throw Exception(
+        'Você não tem permissão para atualizar este pedido.',
+      );
+    }
+
+    if (response.statusCode == 404) {
+      throw Exception(
+        'Pedido não encontrado.',
+      );
+    }
+
+    throw Exception(
+      'Erro ao atualizar status. '
+      'Código: ${response.statusCode}. '
+      '${response.body}',
+    );
+  }
+
+
   Future<List<PedidoResumoLojistaModel>> buscarPedidos({
     required String token,
     String? status,

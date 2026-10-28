@@ -246,15 +246,15 @@ class OrderDetailsPage extends StatelessWidget {
 
               SizedBox(height: 16.h),
 
-              ButtonNhac(
-                texto: 'Atualizar status',
-                onTap: () {
-                  context.push(
-                    '/update-status',
-                    extra: pedido,
-                  );
-                },
-              ),
+             ButtonNhac(
+              texto: 'Atualizar status',
+              onTap: () {
+                context.push(
+                  '/update-status',
+                  extra: pedido,
+                );
+              },
+            ),
             ],
           ),
         ),
