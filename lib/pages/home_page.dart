@@ -1,3 +1,4 @@
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,6 +11,7 @@ import 'package:nhac_lojas/controllers/scroll_shell_controller.dart';
 import '../models/usuario_model.dart';
 import '../models/loja_model.dart';
 import '../models/painel_model.dart';
+import '../models/pedido_resumo_model.dart';
 
 import '../services/usuario_service.dart';
 import '../services/loja_service.dart';
@@ -153,6 +155,7 @@ class _HomePageState extends State<HomePage> {
               _buildTituloSecao(
                 titulo: 'RESUMO DE HOJE',
                 acao: 'Ver mais >',
+                onTap: () {},
               ),
 
               SizedBox(height: 4.h),
@@ -175,6 +178,9 @@ class _HomePageState extends State<HomePage> {
               _buildTituloSecao(
                 titulo: 'ÚLTIMOS PEDIDOS',
                 acao: 'Ver todos >',
+                onTap: () {
+                  context.push('/orders');
+                },
               ),
 
               SizedBox(height: 8.h),
@@ -204,9 +210,7 @@ class _HomePageState extends State<HomePage> {
               Icons.error_outline,
               size: 48.sp,
             ),
-
             SizedBox(height: 12.h),
-
             Text(
               'Não foi possível carregar os dados.',
               textAlign: TextAlign.center,
@@ -215,9 +219,7 @@ class _HomePageState extends State<HomePage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             SizedBox(height: 8.h),
-
             Text(
               mensagem ?? _erro ?? 'Erro desconhecido.',
               textAlign: TextAlign.center,
@@ -225,9 +227,7 @@ class _HomePageState extends State<HomePage> {
                 fontSize: 12.sp,
               ),
             ),
-
             SizedBox(height: 16.h),
-
             ElevatedButton(
               onPressed: _carregarDados,
               child: const Text('Tentar novamente'),
@@ -250,20 +250,15 @@ class _HomePageState extends State<HomePage> {
     final lojaAberta = painel.lojaAberta;
 
     return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildImagemLoja(loja),
-
             SizedBox(width: 12.w),
-
             Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
@@ -273,9 +268,7 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 SizedBox(height: 2.h),
-
                 Text(
                   lojaAberta
                       ? '• Loja aberta'
@@ -292,7 +285,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-
         IconContainer(
           icon: Icons.notifications_none_rounded,
         ),
@@ -301,18 +293,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ============================================================
-  // RESUMO
+  // TÍTULO DAS SEÇÕES
   // ============================================================
 
   Widget _buildTituloSecao({
     required String titulo,
     required String acao,
+    required VoidCallback onTap,
   }) {
     return Padding(
       padding: EdgeInsets.all(8.r),
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             titulo,
@@ -321,19 +313,25 @@ class _HomePageState extends State<HomePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
-          Text(
-            acao,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
+          GestureDetector(
+            onTap: onTap,
+            child: Text(
+              acao,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.redAccent,
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
+  // ============================================================
+  // RESUMO DOS PEDIDOS
+  // ============================================================
 
   Widget _buildResumoPedidos(
     PainelResumoModel painel,
@@ -353,9 +351,7 @@ class _HomePageState extends State<HomePage> {
                 complemento: 'Pedidos',
               ),
             ),
-
             SizedBox(width: 8.w),
-
             Expanded(
               child: _buildCardResumo(
                 informacao:
@@ -366,9 +362,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-
         SizedBox(height: 8.h),
-
         Row(
           children: [
             Expanded(
@@ -379,9 +373,7 @@ class _HomePageState extends State<HomePage> {
                 corTitulo: Colors.redAccent,
               ),
             ),
-
             SizedBox(width: 8.w),
-
             Expanded(
               child: _buildCardResumo(
                 informacao:
@@ -405,8 +397,7 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: ContainerNhac(
         informacao: informacao,
@@ -443,12 +434,10 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'FATURAMENTO',
@@ -457,21 +446,15 @@ class _HomePageState extends State<HomePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           SizedBox(height: 4.h),
-
           Text(
-            _formatarMoeda(
-              painel.faturamentoHoje,
-            ),
+            _formatarMoeda(painel.faturamentoHoje),
             style: TextStyle(
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-
           SizedBox(height: 12.h),
-
           SizedBox(
             height: 80.h,
             child: spots.isEmpty
@@ -490,30 +473,20 @@ class _HomePageState extends State<HomePage> {
                       maxX: spots.length > 1
                           ? (spots.length - 1).toDouble()
                           : 1,
-
                       minY: _calcularMinY(spots),
                       maxY: _calcularMaxY(spots),
-
-                      gridData:
-                          const FlGridData(
+                      gridData: const FlGridData(
                         show: false,
                       ),
-
-                      titlesData:
-                          const FlTitlesData(
+                      titlesData: const FlTitlesData(
                         show: false,
                       ),
-
-                      borderData:
-                          FlBorderData(
+                      borderData: FlBorderData(
                         show: false,
                       ),
-
-                      lineTouchData:
-                          const LineTouchData(
+                      lineTouchData: const LineTouchData(
                         enabled: false,
                       ),
-
                       lineBarsData: [
                         LineChartBarData(
                           spots: spots,
@@ -521,8 +494,7 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.redAccent,
                           barWidth: 2.5,
                           isStrokeCapRound: true,
-                          dotData:
-                              const FlDotData(
+                          dotData: const FlDotData(
                             show: false,
                           ),
                         ),
@@ -530,10 +502,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
           ),
-
           if (faturamentos.isNotEmpty) ...[
             SizedBox(height: 8.h),
-
             Row(
               mainAxisAlignment:
                   MainAxisAlignment.spaceBetween,
@@ -547,7 +517,6 @@ class _HomePageState extends State<HomePage> {
                     fontSize: 10.sp,
                   ),
                 ),
-
                 Text(
                   _formatarData(
                     faturamentos.last.data,
@@ -565,42 +534,26 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  double _calcularMinY(
-    List<FlSpot> spots,
-  ) {
-    if (spots.isEmpty) {
-      return 0;
-    }
+  double _calcularMinY(List<FlSpot> spots) {
+    if (spots.isEmpty) return 0;
 
     final menor = spots
         .map((spot) => spot.y)
-        .reduce(
-          (a, b) => a < b ? a : b,
-        );
+        .reduce((a, b) => a < b ? a : b);
 
-    if (menor <= 0) {
-      return 0;
-    }
+    if (menor <= 0) return 0;
 
     return menor * 0.8;
   }
 
-  double _calcularMaxY(
-    List<FlSpot> spots,
-  ) {
-    if (spots.isEmpty) {
-      return 10;
-    }
+  double _calcularMaxY(List<FlSpot> spots) {
+    if (spots.isEmpty) return 10;
 
     final maior = spots
         .map((spot) => spot.y)
-        .reduce(
-          (a, b) => a > b ? a : b,
-        );
+        .reduce((a, b) => a > b ? a : b);
 
-    if (maior <= 0) {
-      return 10;
-    }
+    if (maior <= 0) return 10;
 
     return maior * 1.2;
   }
@@ -618,12 +571,10 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'AVALIAÇÃO DA LOJA',
@@ -632,9 +583,7 @@ class _HomePageState extends State<HomePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           SizedBox(height: 8.h),
-
           Row(
             children: [
               Text(
@@ -644,9 +593,7 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               SizedBox(width: 8.w),
-
               Column(
                 crossAxisAlignment:
                     CrossAxisAlignment.start,
@@ -658,14 +605,12 @@ class _HomePageState extends State<HomePage> {
                       fontSize: 14.sp,
                     ),
                   ),
-
                   Text(
                     '$totalAvaliacoes avaliações',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12.sp,
-                      fontWeight:
-                          FontWeight.w500,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -692,8 +637,7 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.all(24.r),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius:
-              BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Column(
           children: [
@@ -702,9 +646,7 @@ class _HomePageState extends State<HomePage> {
               size: 36.sp,
               color: Colors.grey,
             ),
-
             SizedBox(height: 8.h),
-
             Text(
               'Nenhum pedido recente.',
               style: TextStyle(
@@ -722,8 +664,7 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Column(
         children: [
@@ -731,7 +672,6 @@ class _HomePageState extends State<HomePage> {
             _buildPedido(
               pedido: pedidos[i],
             ),
-
             if (i < pedidos.length - 1)
               const Divider(
                 color: Color.fromARGB(
@@ -753,17 +693,18 @@ class _HomePageState extends State<HomePage> {
     return ContainerNhac(
       codigo: int.tryParse(pedido.id) ?? 0,
       informacao: pedido.clienteNome,
-      quantidadeItens:
-          pedido.quantidadeItens,
+      quantidadeItens: pedido.quantidadeItens,
       preco: pedido.valorTotal,
-      horario: _formatarHorario(
-        pedido.criadoEm,
-      ),
-      situacao: _statusPedidoTexto(
-        pedido.status,
-      ),
+      horario: _formatarHorario(pedido.criadoEm),
+      situacao: _statusPedidoTexto(pedido.status),
       onTap: () {
-        context.push('/order-details');
+        debugPrint('PEDIDO CLICADO: ${pedido.id}');
+        debugPrint('TIPO: ${pedido.runtimeType}');
+
+        context.push(
+          '/order-details',
+          extra: pedido,
+        );
       },
     );
   }
@@ -772,13 +713,10 @@ class _HomePageState extends State<HomePage> {
   // IMAGEM DA LOJA
   // ============================================================
 
-  Widget _buildImagemLoja(
-    LojaModel loja,
-  ) {
+  Widget _buildImagemLoja(LojaModel loja) {
     final imagemUrl = loja.imagemUrl;
 
-    if (imagemUrl == null ||
-        imagemUrl.isEmpty) {
+    if (imagemUrl == null || imagemUrl.isEmpty) {
       return Container(
         width: 48.w,
         height: 48.w,
@@ -790,8 +728,7 @@ class _HomePageState extends State<HomePage> {
             242,
             230,
           ),
-          borderRadius:
-              BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Image.asset(
           'assets/images/nhac-logo.png',
@@ -801,15 +738,13 @@ class _HomePageState extends State<HomePage> {
     }
 
     return ClipRRect(
-      borderRadius:
-          BorderRadius.circular(20.r),
+      borderRadius: BorderRadius.circular(20.r),
       child: Image.network(
         imagemUrl,
         width: 48.w,
         height: 48.w,
         fit: BoxFit.cover,
-        errorBuilder:
-            (context, error, stackTrace) {
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             width: 48.w,
             height: 48.w,
@@ -821,8 +756,7 @@ class _HomePageState extends State<HomePage> {
                 242,
                 230,
               ),
-              borderRadius:
-                  BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(20.r),
             ),
             child: Image.asset(
               'assets/images/nhac-logo.png',
@@ -843,51 +777,33 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _formatarHorario(DateTime data) {
-    final hora = data.hour
-        .toString()
-        .padLeft(2, '0');
-
-    final minuto = data.minute
-        .toString()
-        .padLeft(2, '0');
+    final hora = data.hour.toString().padLeft(2, '0');
+    final minuto = data.minute.toString().padLeft(2, '0');
 
     return '$hora:$minuto';
   }
 
   String _formatarData(DateTime data) {
-    final dia = data.day
-        .toString()
-        .padLeft(2, '0');
-
-    final mes = data.month
-        .toString()
-        .padLeft(2, '0');
+    final dia = data.day.toString().padLeft(2, '0');
+    final mes = data.month.toString().padLeft(2, '0');
 
     return '$dia/$mes';
   }
 
-  String _statusPedidoTexto(
-    String status,
-  ) {
+  String _statusPedidoTexto(String status) {
     switch (status) {
       case 'PENDENTE':
         return 'Pendente';
-
       case 'PAGO':
         return 'Pago';
-
       case 'PREPARANDO':
         return 'Em preparo';
-
       case 'SAIU_ENTREGA':
         return 'A caminho';
-
       case 'ENTREGUE':
         return 'Concluído';
-
       case 'CANCELADO':
         return 'Cancelado';
-
       default:
         return status;
     }
