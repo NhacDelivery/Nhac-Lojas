@@ -1,3 +1,5 @@
+import 'pedido_resumo_model.dart';
+
 class FaturamentoDiaModel {
   final DateTime data;
   final double valor;
@@ -7,41 +9,12 @@ class FaturamentoDiaModel {
     required this.valor,
   });
 
-  factory FaturamentoDiaModel.fromJson(Map<String, dynamic> json) {
+  factory FaturamentoDiaModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return FaturamentoDiaModel(
       data: DateTime.parse(json['data'].toString()),
       valor: double.tryParse(json['valor'].toString()) ?? 0.0,
-    );
-  }
-}
-
-class PedidoResumoLojistaModel {
-  final String id;
-  final String clienteNome;
-  final int quantidadeItens;
-  final double valorTotal;
-  final String status;
-  final DateTime criadoEm;
-
-  PedidoResumoLojistaModel({
-    required this.id,
-    required this.clienteNome,
-    required this.quantidadeItens,
-    required this.valorTotal,
-    required this.status,
-    required this.criadoEm,
-  });
-
-  factory PedidoResumoLojistaModel.fromJson(Map<String, dynamic> json) {
-    return PedidoResumoLojistaModel(
-      id: json['id']?.toString() ?? '',
-      clienteNome: json['clienteNome']?.toString() ?? 'Cliente',
-      quantidadeItens:
-          (json['quantidadeItens'] as num?)?.toInt() ?? 0,
-      valorTotal:
-          double.tryParse(json['valorTotal'].toString()) ?? 0.0,
-      status: json['status']?.toString() ?? '',
-      criadoEm: DateTime.parse(json['criadoEm'].toString()),
     );
   }
 }
@@ -65,7 +38,9 @@ class PainelResumoModel {
     required this.pedidosRecentes,
   });
 
-  factory PainelResumoModel.fromJson(Map<String, dynamic> json) {
+  factory PainelResumoModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return PainelResumoModel(
       lojaAberta: json['lojaAberta'] == true,
       faturamentoHoje:
@@ -76,6 +51,7 @@ class PainelResumoModel {
           (json['pedidosACaminho'] as num?)?.toInt() ?? 0,
       pedidosConcluidosHoje:
           (json['pedidosConcluidosHoje'] as num?)?.toInt() ?? 0,
+
       faturamentoUltimos7Dias:
           (json['faturamentoUltimos7Dias'] as List<dynamic>? ?? [])
               .map(
@@ -84,6 +60,7 @@ class PainelResumoModel {
                 ),
               )
               .toList(),
+
       pedidosRecentes:
           (json['pedidosRecentes'] as List<dynamic>? ?? [])
               .map(
