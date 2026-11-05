@@ -1,3 +1,4 @@
+
 class LojaModel {
   final String id;
   final String nome;
@@ -61,6 +62,22 @@ class LojaModel {
       longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
+
+  // JSON específico para o PUT de atualização da loja.
+  // Não envia id, latitude ou longitude.
+  Map<String, dynamic> toUpdateDtoJson() {
+    return {
+      'nome': nome,
+      'descricao': descricao,
+      'categoria': categoria,
+      'imagemUrl': imagemUrl,
+      'isAberto': isAberto,
+      'dadosOperacionais': dadosOperacionais?.toUpdateDtoJson(),
+      'endereco': endereco?.toJson(),
+      'horarios': horarios?.toJson(),
+      'formasPagamento': formasPagamento?.toJson(),
+    };
+  }
 }
 
 class DadosOperacionaisModel {
@@ -102,6 +119,18 @@ class DadosOperacionaisModel {
           (json['raioEntregaKm'] as num?)?.toDouble(),
     );
   }
+
+  // Campos aceitos pelo DadosOperacionaisDTO do backend.
+  Map<String, dynamic> toUpdateDtoJson() {
+    return {
+      'taxaEntregaBase': taxaEntregaBase,
+      'tempoEntregaMin': tempoEntregaMin,
+      'tempoEntregaMax': tempoEntregaMax,
+      'entregaPropria': entregaPropria,
+      'retiradaNoLocal': retiradaNoLocal,
+      'raioEntregaKm': raioEntregaKm,
+    };
+  }
 }
 
 class EnderecoLojaModel {
@@ -133,6 +162,18 @@ class EnderecoLojaModel {
       bairro: json['bairro']?.toString(),
       complemento: json['complemento']?.toString(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'rua': rua,
+      'numero': numero,
+      'cidade': cidade,
+      'estado': estado,
+      'cep': cep,
+      'bairro': bairro,
+      'complemento': complemento,
+    };
   }
 }
 
@@ -166,6 +207,18 @@ class HorariosLojaModel {
       sabado: json['sabado']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'domingo': domingo,
+      'segunda': segunda,
+      'terca': terca,
+      'quarta': quarta,
+      'quinta': quinta,
+      'sexta': sexta,
+      'sabado': sabado,
+    };
+  }
 }
 
 class FormasPagamentoModel {
@@ -194,5 +247,16 @@ class FormasPagamentoModel {
       aceitaValeRefeicao: json['aceitaValeRefeicao'] as bool?,
       aceitaValeAlimentacao: json['aceitaValeAlimentacao'] as bool?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'aceitaDinheiro': aceitaDinheiro,
+      'aceitaCredito': aceitaCredito,
+      'aceitaDebito': aceitaDebito,
+      'aceitaPix': aceitaPix,
+      'aceitaValeRefeicao': aceitaValeRefeicao,
+      'aceitaValeAlimentacao': aceitaValeAlimentacao,
+    };
   }
 }

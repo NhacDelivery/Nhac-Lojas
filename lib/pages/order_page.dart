@@ -233,7 +233,7 @@ class _OrderPageState extends State<OrderPage> {
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: ContainerNhac(
-        codigo: int.tryParse(pedido.id) ?? 0,
+        
         informacao: pedido.clienteNome,
         quantidadeItens: pedido.quantidadeItens,
         preco: pedido.valorTotal,

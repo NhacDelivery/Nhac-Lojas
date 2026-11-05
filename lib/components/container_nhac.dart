@@ -11,6 +11,7 @@ class ContainerNhac extends StatelessWidget {
   final int? quantidadeItens;
   final String? horario;
   final double? preco;
+  final String? data;
   final int? codigo;
   final String? situacao;
   final bool exibirCirculoSituacao;
@@ -72,6 +73,7 @@ class ContainerNhac extends StatelessWidget {
     this.statusMensagem,
     this.quantidadeMensagens,
     this.corIcone,
+    this.data,
     this.corFundoIcone = const Color.fromARGB(255, 255, 242, 230),
     this.corComplemento,
     this.corTitulo,
@@ -378,25 +380,34 @@ class ContainerNhac extends StatelessWidget {
             ),
           ),
 
-          if (horario != null ||
-              (preco != null && (precoEmDestaque || quantidadeItens == null)) ||
-              (situacao != null && !exibirTagEmCima) ||
-              statusMensagem != null ||
-              (complementoAoLadoPreco && complemento != null))
+          if (data != null ||
+            horario != null ||
+            (preco != null && (precoEmDestaque || quantidadeItens == null)) ||
+            (situacao != null && !exibirTagEmCima) ||
+            statusMensagem != null ||
+            (complementoAoLadoPreco && complemento != null))
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (horario != null)
+                 if (horario != null)
+                    Text(
+                      horario!,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                if (data != null)
                   Text(
-                    horario!,
+                    data!,
                     style: TextStyle(
                       color: Colors.grey,
                       fontWeight: FontWeight.w500,
                       fontSize: 12.sp,
                     ),
                   ),
-
                 if ((preco != null &&
                         situacao == null &&
                         (precoEmDestaque || quantidadeItens == null)) ||

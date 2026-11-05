@@ -163,5 +163,33 @@ class LojaService {
     throw Exception('Sem conexão com a internet.');
   }
 }
+    Future<LojaModel> atualizarLoja({
+    required String token,
+    required String lojaId,
+    required Map<String, dynamic> dados,
+  }) async {
+    final response = await http
+        .put(
+          Uri.parse('$lojasUrl/$lojaId'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(dados),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(
+        utf8.decode(response.bodyBytes),
+      );
+
+      return LojaModel.fromJson(json);
+    }
+
+    throw Exception(
+      'Erro ao atualizar loja: ${response.statusCode} - ${response.body}',
+    );
+  }
 }
 

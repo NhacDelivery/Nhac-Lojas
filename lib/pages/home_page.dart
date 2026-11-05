@@ -687,27 +687,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildPedido({
-    required PedidoResumoLojistaModel pedido,
-  }) {
-    return ContainerNhac(
-      codigo: int.tryParse(pedido.id) ?? 0,
-      informacao: pedido.clienteNome,
-      quantidadeItens: pedido.quantidadeItens,
-      preco: pedido.valorTotal,
-      horario: _formatarHorario(pedido.criadoEm),
-      situacao: _statusPedidoTexto(pedido.status),
-      onTap: () {
-        debugPrint('PEDIDO CLICADO: ${pedido.id}');
-        debugPrint('TIPO: ${pedido.runtimeType}');
+ Widget _buildPedido({
+  required PedidoResumoLojistaModel pedido,
+}) {
+  return ContainerNhac(
+    informacao: pedido.clienteNome,
+    quantidadeItens: pedido.quantidadeItens,
+    preco: pedido.valorTotal,
+    data: _formatarData(pedido.criadoEm),
+    horario: _formatarHorario(pedido.criadoEm),
+    situacao: _statusPedidoTexto(pedido.status),
+    onTap: () {
+      debugPrint('PEDIDO CLICADO: ${pedido.id}');
+      debugPrint('TIPO: ${pedido.runtimeType}');
 
-        context.push(
-          '/order-details',
-          extra: pedido,
-        );
-      },
-    );
-  }
+      context.push(
+        '/order-details',
+        extra: pedido,
+      );
+    },
+  );
+}
 
   // ============================================================
   // IMAGEM DA LOJA
