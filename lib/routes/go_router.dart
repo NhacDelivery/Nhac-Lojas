@@ -160,9 +160,7 @@ GoRoute(
           );
         }
 
-        return OrderDetailsPage(
-          pedido: extra,
-        );
+        return const OrderDetailsPage();
       },
     ),
 
