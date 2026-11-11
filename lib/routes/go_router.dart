@@ -185,9 +185,17 @@ GoRoute(
     GoRoute(
       path: '/chat-open',
       builder: (context, state) {
-        final conversa = state.extra as ConversaResumoModel;
+        final extra = state.extra;
 
-        return ChatOpen(conversa: conversa);
+        if (extra is! ConversaResumoModel) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Conversa não encontrada. Volte à lista de chats e selecione uma conversa.'),
+            ),
+          );
+        }
+
+        return ChatOpen(conversa: extra);
       },
     ),
     GoRoute(
