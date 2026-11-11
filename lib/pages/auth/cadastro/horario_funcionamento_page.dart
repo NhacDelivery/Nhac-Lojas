@@ -67,49 +67,49 @@ class HorarioFuncionamentoPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 18.h),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Seg',
                   horarioInicial: '08:00 - 18:00',
                   ativoInicial: true,
                   onHorarioChanged: (_) {},
                 ),
                 const Divider(),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Ter',
                   horarioInicial: '08:00 - 18:00',
                   ativoInicial: true,
                   onHorarioChanged: (_) {},
                 ),
                 const Divider(),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Qua',
                   horarioInicial: '08:00 - 18:00',
                   ativoInicial: true,
                   onHorarioChanged: (_) {},
                 ),
                 const Divider(),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Qui',
                   horarioInicial: '08:00 - 18:00',
                   ativoInicial: true,
                   onHorarioChanged: (_) {},
                 ),
                 const Divider(),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Sex',
                   horarioInicial: '08:00 - 22:00',
                   ativoInicial: true,
                   onHorarioChanged: (_) {},
                 ),
                 const Divider(),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Sáb',
                   horarioInicial: '10:00 - 22:00',
                   ativoInicial: true,
                   onHorarioChanged: (_) {},
                 ),
                 const Divider(),
-                const ItemHorarioFuncionamento(
+                ItemHorarioFuncionamento(
                   diaSemana: 'Dom',
                   horarioInicial: 'Fechado',
                   ativoInicial: false,
