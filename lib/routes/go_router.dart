@@ -14,11 +14,9 @@ import 'package:nhac_lojas/pages/auth/nova_senha.dart';
 import 'package:nhac_lojas/pages/auth/recuperar_senha.dart';
 import 'package:nhac_lojas/pages/bem_vindo.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/adicionar_impressora.dart';
-import 'package:nhac_lojas/pages/mais-opcoes-pages/avaliacoes_page.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/cadastrar_produtos.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/cardapio_cheio_page.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/cardapio_vazio_page.dart';
-import 'package:nhac_lojas/pages/mais-opcoes-pages/configuracoes_app.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/configuracoes_conta.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/convidar_funcionario.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/criar_cupom_page.dart';
@@ -28,7 +26,6 @@ import 'package:nhac_lojas/pages/mais-opcoes-pages/endereco_edicao.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/financeiro_page.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/formas_pagamento_edicao_page.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/funcionarios_page.dart';
-import 'package:nhac_lojas/pages/mais-opcoes-pages/horario_edicao_page.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/impressoras_page.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/informacao_funcionario.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/informacao_loja.dart';
@@ -36,7 +33,6 @@ import 'package:nhac_lojas/pages/chat_open.dart';
 import 'package:nhac_lojas/pages/chat_page.dart';
 import 'package:nhac_lojas/pages/home_page.dart';
 import 'package:nhac_lojas/pages/main_shell.dart';
-import 'package:nhac_lojas/pages/mais-opcoes-pages/relatorio_page.dart';
 import 'package:nhac_lojas/pages/more_page.dart';
 import 'package:nhac_lojas/pages/order_details_page.dart';
 import 'package:nhac_lojas/pages/order_page.dart';
@@ -260,18 +256,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const FinanceiroPage(),
     ),
     GoRoute(
-      path: '/relatorio',
-      builder: (context, state) => const RelatorioPage(),
-    ),
-    GoRoute(
-      path: '/avaliacoes',
-      builder: (context, state) => const AvaliacoesPage(),
-    ),
-    // GoRoute(
-    //   path: '/horarios',
-    //   builder: (context, state) => const HorarioEdicaoPage(),
-    // ),
-    GoRoute(
       path: '/cupom',
       builder: (context, state) => const CupomPage(),
     ),
@@ -298,10 +282,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/adicionar-impressora',
       builder: (context, state) => const AdicionarImpressora(),
-    ),
-    GoRoute(
-      path: '/configuracoes-app',
-      builder: (context, state) => const ConfiguracoesApp(),
     ),
     GoRoute(
       path: '/editar-info-loja',
