@@ -39,7 +39,6 @@ import 'package:nhac_lojas/pages/more_page.dart';
 import 'package:nhac_lojas/pages/order_details_page.dart';
 import 'package:nhac_lojas/pages/order_page.dart';
 import 'package:nhac_lojas/pages/update_order_status.dart';
-import 'package:nhac_lojas/models/cadastro_loja.dart';
 import 'package:nhac_lojas/pages/mais-opcoes-pages/editar_produtos_page.dart';
 import 'package:nhac_lojas/models/produto_lojista_model.dart';
 import 'package:nhac_lojas/models/pedido_resumo_model.dart';
@@ -123,56 +122,26 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const DadosBasicosPage(),
     ),
     GoRoute(
-    path: '/endereco-loja',
-    builder: (context, state) {
-      final cadastro = state.extra as CadastroLoja;
-
-      return EnderecoLojaPage(
-        cadastro: cadastro,
-      );
-    },
-  ),
-   GoRoute(
-      path: '/dados-entrega',
-      builder: (context, state) {
-        final cadastro = state.extra as CadastroLoja;
-
-        return DadosEntregaPage(
-          cadastro: cadastro,
-        );
-      },
-    ),
-    GoRoute(
-      path: '/horario-funcionamento',
-      builder: (context, state) {
-        final cadastro = state.extra as CadastroLoja;
-
-        return HorarioFuncionamentoPage(
-          cadastro: cadastro,
-        );
-      },
-    ),
-   GoRoute(
-      path: '/forma-pagamento-cadastro',
-      builder: (context, state) {
-        final cadastro = state.extra as CadastroLoja;
-
-        return FormasPagamentoPage(
-          cadastro: cadastro,
-        );
-      },
-    ),
-  GoRoute(
-      path: '/revisar-dados',
-      builder: (context, state) {
-        final cadastro = state.extra as CadastroLoja;
-
-        return RevisarDadosPage(
-          cadastro: cadastro,
-        );
-      },
-    ),
-    GoRoute(
+  path: '/endereco-loja',
+  builder: (context, state) => const EnderecoLojaPage(),
+),
+GoRoute(
+  path: '/dados-entrega',
+  builder: (context, state) => const DadosEntregaPage(),
+),
+GoRoute(
+  path: '/horario-funcionamento',
+  builder: (context, state) => const HorarioFuncionamentoPage(),
+),
+GoRoute(
+  path: '/forma-pagamento-cadastro',
+  builder: (context, state) => const FormasPagamentoPage(),
+),
+GoRoute(
+  path: '/revisar-dados',
+  builder: (context, state) => const RevisarDadosPage(),
+),
+GoRoute(
       path: '/loja-cadastrada',
       builder: (context, state) => const LojaCadastradaPage(),
     ),
