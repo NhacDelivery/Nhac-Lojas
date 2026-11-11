@@ -37,8 +37,9 @@ class _ConfiguracoesAppState extends State<ConfiguracoesApp> {
                 ],
               ),
               SizedBox(height: 24.h),
-              SingleChildScrollView(
-                child: Column(
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -73,11 +74,6 @@ class _ConfiguracoesAppState extends State<ConfiguracoesApp> {
                                   somPedido = valor;
                                 });
                               },
-                              onTap: () => {
-                                setState(() {
-                                  somPedido = !somPedido;
-                                }),
-                              },
                             ),
                           ),
                           Divider(),
@@ -95,11 +91,6 @@ class _ConfiguracoesAppState extends State<ConfiguracoesApp> {
                                 setState(() {
                                   vibracao = valor;
                                 });
-                              },
-                              onTap: () => {
-                                setState(() {
-                                  vibracao = !vibracao;
-                                }),
                               },
                             ),
                           ),
@@ -147,13 +138,14 @@ class _ConfiguracoesAppState extends State<ConfiguracoesApp> {
                     ),
                     SizedBox(height: 4.h),
                     Align(
-                      alignment: AlignmentGeometry.center,
+                      alignment: Alignment.center,
                       child: Text(
                         'Nhac Lojas · versão 2.4.1',
                         style: TextStyle(color: Colors.grey, fontSize: 10),
                       ),
                     ),
                   ],
+                  ),
                 ),
               ),
             ],
