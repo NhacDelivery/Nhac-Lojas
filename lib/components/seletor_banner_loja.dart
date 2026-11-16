@@ -5,10 +5,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SeletorBannerLoja extends StatefulWidget {
-  const SeletorBannerLoja({super.key, this.arquivo, this.url, this.onChanged});
+  const SeletorBannerLoja({
+    super.key,
+    this.arquivo,
+    this.url,
+    this.opcional = false,
+    this.onChanged,
+  });
 
   final File? arquivo;
   final String? url;
+  final bool opcional;
   final ValueChanged<File?>? onChanged;
 
   @override
@@ -26,6 +33,7 @@ class _SeletorBannerLojaState extends State<SeletorBannerLoja> {
         maxWidth: 1440,
         maxHeight: 1440,
         imageQuality: 85,
+        requestFullMetadata: false,
       );
       if (foto == null || !mounted) return;
 
@@ -70,7 +78,7 @@ class _SeletorBannerLojaState extends State<SeletorBannerLoja> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Banner da loja',
+          widget.opcional ? 'Banner da loja (opcional)' : 'Banner da loja',
           style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 4.h),

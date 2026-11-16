@@ -6,10 +6,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nhac_lojas/components/back_arrow.dart';
-import 'package:nhac_lojas/components/seletor_banner_loja.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/nhac_input_field.dart';
 import 'package:nhac_lojas/components/register_steps.dart';
+import 'package:nhac_lojas/components/seletor_banner_loja.dart';
 import 'package:nhac_lojas/models/cadastro_loja.dart';
 
 class DadosBasicosPage extends StatefulWidget {
@@ -265,6 +265,7 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                 SizedBox(height: 18.h),
                 SeletorBannerLoja(
                   arquivo: _banner,
+                  opcional: true,
                   onChanged: (arquivo) => setState(() => _banner = arquivo),
                 ),
                 SizedBox(height: 18.h),
