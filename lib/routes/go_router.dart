@@ -160,7 +160,7 @@ GoRoute(
           );
         }
 
-        return const OrderDetailsPage();
+        return OrderDetailsPage(pedido: extra);
       },
     ),
 
