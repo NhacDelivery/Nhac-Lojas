@@ -4,6 +4,7 @@ class LojaModel {
   final String? descricao;
   final String? categoria;
   final String? imagemUrl;
+  final String? bannerUrl;
   final bool isAberto;
 
   final DadosOperacionaisModel? dadosOperacionais;
@@ -20,6 +21,7 @@ class LojaModel {
     this.descricao,
     this.categoria,
     this.imagemUrl,
+    this.bannerUrl,
     required this.isAberto,
     this.dadosOperacionais,
     this.endereco,
@@ -36,6 +38,7 @@ class LojaModel {
       descricao: json['descricao']?.toString(),
       categoria: json['categoria']?.toString(),
       imagemUrl: json['imagemUrl']?.toString(),
+      bannerUrl: json['bannerUrl']?.toString(),
       isAberto: json['isAberto'] == true,
       dadosOperacionais: json['dadosOperacionais'] != null
           ? DadosOperacionaisModel.fromJson(

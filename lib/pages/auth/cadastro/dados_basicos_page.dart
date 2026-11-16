@@ -9,6 +9,7 @@ import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
 import 'package:nhac_lojas/components/nhac_input_field.dart';
 import 'package:nhac_lojas/components/register_steps.dart';
+import 'package:nhac_lojas/components/seletor_banner_loja.dart';
 import 'package:nhac_lojas/models/cadastro_loja.dart';
 
 class DadosBasicosPage extends StatefulWidget {
@@ -24,6 +25,7 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
   final TextEditingController tipoCulinariaController = TextEditingController();
 
   File? _imagem;
+  File? _banner;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -81,7 +83,8 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
     cadastro.nome = nome;
     cadastro.descricao = descricao;
     cadastro.categoria = categoria;
-    cadastro.imagemArquivo = _imagem; // foto escolhida
+    cadastro.imagemArquivo = _imagem;
+    cadastro.bannerArquivo = _banner;
 
     context.push(
       '/endereco-loja',
@@ -96,7 +99,7 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
         maxWidth: 1080,
         imageQuality: 85, // reduz o tamanho (limite do backend: 5MB)
       );
-      if (picked != null) {
+      if (mounted && picked != null) {
         setState(() => _imagem = File(picked.path));
       }
     } catch (e) {
@@ -258,6 +261,12 @@ class _DadosBasicosState extends State<DadosBasicosPage> {
                       ],
                     ),
                   ],
+                ),
+                SizedBox(height: 18.h),
+                SeletorBannerLoja(
+                  arquivo: _banner,
+                  opcional: true,
+                  onChanged: (arquivo) => setState(() => _banner = arquivo),
                 ),
                 SizedBox(height: 18.h),
                 Text(

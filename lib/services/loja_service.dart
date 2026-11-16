@@ -31,6 +31,14 @@ class LojaService {
         print('🖼️ Imagem enviada: ${cadastro.imagemUrl}');
       }
 
+      final banner = cadastro.bannerArquivo;
+      if (banner != null && cadastro.bannerUrl == null) {
+        cadastro.bannerUrl = await UploadService().enviarImagem(
+          arquivo: banner,
+          token: token,
+        );
+      }
+
       // 2. Monta o payload sem campos nulos ou vazios
       // (antes imagemUrl ia como '' quando não havia foto).
       final payload = _semVazios(cadastro.toJson());
@@ -76,6 +84,30 @@ class LojaService {
     } on SocketException {
       throw Exception('Sem conexão com a internet.');
     }
+  }
+
+  Future<LojaModel> atualizarBanner({
+    required String lojaId,
+    required String bannerUrl,
+    required String token,
+  }) async {
+    final response = await http
+        .patch(
+          Uri.parse('$lojasUrl/${Uri.encodeComponent(lojaId)}/banner'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({'bannerUrl': bannerUrl}),
+        )
+        .timeout(const Duration(seconds: 60));
+
+    if (response.statusCode != 200) {
+      throw Exception(_mensagemErro(response));
+    }
+
+    return LojaModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   /// Remove recursivamente valores nulos e strings vazias.

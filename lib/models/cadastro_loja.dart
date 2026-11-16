@@ -5,7 +5,9 @@ class CadastroLoja {
   String? descricao;
   String? categoria;
   String? imagemUrl;
-  File? imagemArquivo; 
+  File? imagemArquivo;
+  String? bannerUrl;
+  File? bannerArquivo;
 
   bool isAberto;
 
@@ -46,6 +48,8 @@ class CadastroLoja {
     this.categoria,
     this.imagemUrl,
     this.imagemArquivo,
+    this.bannerUrl,
+    this.bannerArquivo,
     this.isAberto = true,
     this.cep,
     this.rua,
@@ -81,6 +85,7 @@ class CadastroLoja {
       'descricao': descricao,
       'categoria': categoria,
       'imagemUrl': imagemUrl,
+      if (bannerUrl != null) 'bannerUrl': bannerUrl,
       'isAberto': isAberto,
       'dadosOperacionais': {
         'taxaEntregaBase': taxaEntregaBase,
