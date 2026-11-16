@@ -157,6 +157,16 @@ class _InformacaoLojaState extends State<InformacaoLoja> {
                     const Divider(),
                     SizedBox(height: 8.h),
                     ContainerNhac(
+                      icon: Icons.image_outlined,
+                      informacao: 'Banner da loja',
+                      fontSize: 14,
+                      exibirSeta: true,
+                      onTap: () => context.push('/editar-banner-loja'),
+                    ),
+                    SizedBox(height: 8.h),
+                    const Divider(),
+                    SizedBox(height: 8.h),
+                    ContainerNhac(
                       icon: Icons.credit_card_outlined,
                       informacao: 'Formas de pagamento',
                       fontSize: 14,
