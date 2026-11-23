@@ -29,7 +29,9 @@ jobs:
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.44.7'
           channel: stable
+          cache: true
 
       - name: Instalar dependências
         run: flutter pub get
