@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../services/gestao_service.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nhac_lojas/components/app_notification.dart';
 import 'package:nhac_lojas/components/back_arrow.dart';
 import 'package:nhac_lojas/components/button_nhac.dart';
-import 'package:nhac_lojas/components/container_nhac.dart';
 import 'package:nhac_lojas/components/filter_tag.dart';
 
 class CupomPage extends StatefulWidget {
@@ -15,9 +14,36 @@ class CupomPage extends StatefulWidget {
 }
 
 class _CupomPageState extends State<CupomPage> {
-  bool cupom1Status = true;
-  bool cupom2Status = true;
-  bool cupom3Status = false;
+  late Future<List<dynamic>> cupons;
+  String filtro = '';
+  final alterando = <String>{};
+  @override
+  void initState() {
+    super.initState();
+    cupons = carregar();
+  }
+
+  Future<List<dynamic>> carregar() async =>
+      (await GestaoService.requisitar('GET', 'lojista/cupons')) as List;
+  void atualizar() => setState(() => cupons = carregar());
+  Future<void> alterar(String id, bool ativo) async {
+    if (!alterando.add(id)) return;
+    try {
+      await GestaoService.requisitar(
+        'PATCH',
+        'lojista/cupons/${Uri.encodeComponent(id)}',
+        {'ativo': ativo},
+      );
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      alterando.remove(id);
+      if (mounted) atualizar();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +68,7 @@ class _CupomPageState extends State<CupomPage> {
                 ],
               ),
               SizedBox(height: 24.h),
-              
+
               // Conteúdo rolável encapsulado
               Expanded(
                 child: SingleChildScrollView(
@@ -50,117 +76,67 @@ class _CupomPageState extends State<CupomPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ListaFilterTags(
-                        filtros: const ['Ativos', 'Encerrados'],
-                        quantidades: const [2, 3],
+                        filtros: const ['Ativos', 'Agendados', 'Encerrados'],
+                        onSelected: (v) => setState(() => filtro = v),
                       ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        'ATIVOS',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16.r),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.r),
-                        ),
-                        child: ContainerNhac(
-                          informacao: '10% de desconto no frete',
-                          complemento: 'Pedidos acima de R\$ 30,00\nVálido até 20/11/2026',
-                          maxLinesComplemento: 2,
-                          situacao: 'FRETE10',
-                          ativoInicial: cupom1Status,
-                          exibirTagEmCima: true,
-                          exibirSwitch: true,
-                          corTitulo: cupom1Status ? null : Colors.grey[400],
-                          corComplemento: cupom1Status ? null : Colors.grey[400],
-                          corSituacao: cupom1Status ? null : Colors.grey[400],
-                          corSituacaoFundo: cupom1Status ? null : Colors.grey[200],
-                          onSwitchChanged: (valor){
-                            setState(() {
-                              cupom1Status = valor;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16.r),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.r),
-                        ),
-                        child: ContainerNhac(
-                          informacao: '20% de desconto',
-                          complemento: 'Pedidos acima de R\$ 50,00\nVálido até 23/11/2026',
-                          maxLinesComplemento: 2,
-                          situacao: 'NHAC20',
-                          ativoInicial: cupom2Status,
-                          exibirTagEmCima: true,
-                          exibirSwitch: true,
-                          corTitulo: cupom2Status ? null : Colors.grey[400],
-                          corComplemento: cupom2Status ? null : Colors.grey[400],
-                          corSituacao: cupom2Status ? null : Colors.grey[400],
-                          corSituacaoFundo: cupom2Status ? null : Colors.grey[200],
-                          onSwitchChanged: (valor){
-                            setState(() {
-                              cupom2Status = valor;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        'ENCERRADOS',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16.r),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.r),
-                        ),
-                        child: ContainerNhac(
-                          informacao: 'R\$ 10,00 de desconto',
-                          complemento: 'Em combos selecionados\nVálido até 30/05/2026',
-                          maxLinesComplemento: 2,
-                          situacao: 'COMBO10',
-                          ativoInicial: cupom3Status,
-                          exibirTagEmCima: true,
-                          exibirSwitch: true,
-                          corTitulo: cupom3Status ? null : Colors.grey[400],
-                          corComplemento: cupom3Status ? null : Colors.grey[400],
-                          corSituacao: cupom3Status ? null : Colors.grey[400],
-                          corSituacaoFundo: cupom3Status ? null : Colors.grey[200],
-                          onSwitchChanged: (valor){
-                            setState(() {
-                              cupom3Status = valor;
-                            });
-                          },
-                        ),
+                      FutureBuilder<List<dynamic>>(
+                        future: cupons,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError)
+                            return TextButton(
+                              onPressed: atualizar,
+                              child: const Text(
+                                'Não foi possível carregar. Tentar novamente',
+                              ),
+                            );
+                          if (snapshot.connectionState != ConnectionState.done)
+                            return const CircularProgressIndicator();
+                          final hoje = DateUtils.dateOnly(DateTime.now());
+                          final lista = snapshot.data!.where((c) {
+                            if (filtro.isEmpty) return true;
+                            if (c['ativo'] != true ||
+                                DateTime.parse(c['fim']).isBefore(hoje)) {
+                              return filtro == 'Encerrados';
+                            }
+                            if (DateTime.parse(c['inicio']).isAfter(hoje))
+                              return filtro == 'Agendados';
+                            return filtro == 'Ativos';
+                          }).toList();
+                          if (lista.isEmpty)
+                            return const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Text('Nenhum cupom neste filtro.'),
+                            );
+                          return Column(
+                            children: [
+                              for (final c in lista)
+                                SwitchListTile(
+                                  title: Text(c['codigo']),
+                                  subtitle: Text(
+                                    '${c['inicio']} a ${c['fim']} · mínimo R\$ ${c['minimo']}',
+                                  ),
+                                  value: c['ativo'] == true,
+                                  onChanged: (v) => alterar(c['id'], v),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 16.h),
-              
+
               // Botão fixo no rodapé
               ButtonNhac(
                 texto: 'Criar cupom',
-                onTap: () => context.push('/criar-cupom'),
+                onTap: () async {
+                  if (await context.push<bool>('/criar-cupom') == true &&
+                      mounted)
+                    atualizar();
+                },
               ),
             ],
           ),

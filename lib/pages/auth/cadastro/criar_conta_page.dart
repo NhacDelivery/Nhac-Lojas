@@ -17,10 +17,7 @@ class CriarContaPage extends StatefulWidget {
   State<CriarContaPage> createState() => _CriarContaPageState();
 }
 
-
-
 class _CriarContaPageState extends State<CriarContaPage> {
-  
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
@@ -30,104 +27,113 @@ class _CriarContaPageState extends State<CriarContaPage> {
   bool _carregando = false;
   bool _senhaVisivel = false;
   bool _confirmarSenhaVisivel = false;
-  
 
+  Future<void> _continuar() async {
+    final nome = _nomeController.text.trim();
+    final email = _emailController.text.trim().toLowerCase();
+    final telefone = _telefoneController.text.trim();
+    final senha = _senhaController.text;
+    final confirmarSenha = _confirmarSenhaController.text;
 
-Future<void> _continuar() async {
-  final nome = _nomeController.text.trim();
-  final email = _emailController.text.trim();
-  final telefone = _telefoneController.text.trim();
-  final senha = _senhaController.text;
-  final confirmarSenha = _confirmarSenhaController.text;
+    if (nome.isEmpty) {
+      _mostrarErro('Digite seu nome completo.');
+      return;
+    }
 
-  if (nome.isEmpty) {
-    _mostrarErro('Digite seu nome completo.');
-    return;
-  }
+    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+      _mostrarErro('Informe um e-mail válido.');
+      return;
+    }
 
-  if (email.isEmpty) {
-    _mostrarErro('Digite seu e-mail.');
-    return;
-  }
-
-  if (telefone.isEmpty) {
-    _mostrarErro('Digite seu telefone.');
-    return;
-  }
-
-  if (senha.isEmpty) {
-    _mostrarErro('Digite uma senha.');
-    return;
-  }
-
-  if (senha.length < 8) {
-    _mostrarErro('A senha deve ter no mínimo 8 caracteres.');
-    return;
-  }
-
-  // Mesma regra do backend: pelo menos uma letra e um número
-  if (!RegExp(r'^(?=.*[0-9])(?=.*[a-zA-Z]).*$').hasMatch(senha)) {
-    _mostrarErro('A senha deve conter pelo menos uma letra e um número.');
-    return;
-  }
-
-  if (senha != confirmarSenha) {
-    _mostrarErro('As senhas não coincidem.');
-    return;
-  }
-
-  setState(() {
-    _carregando = true;
-  });
-
-  try {
-    await AuthService.logout();
-
-    await AuthService.enviarCodigoCadastro(email);
-
-    CadastroUsuario.id = const Uuid().v4();
-    CadastroUsuario.nome = nome;
-    CadastroUsuario.email = email;
-    CadastroUsuario.telefone = telefone;
-    CadastroUsuario.senha = senha;
-
-    if (!mounted) return;
-
-    context.push(
-      '/confirmar-email',
-      extra: {
-        'nome': nome,
-        'email': email,
-        'telefone': telefone,
-        'senha': senha,
-      },
+    final numero = telefone.replaceAll(RegExp(r'[ ()-]'), '');
+    final formatoValido = RegExp(
+      r'^(?:[0-9]{10,11}|55[0-9]{10,11}|\+[1-9][0-9]{7,14})$',
     );
-  } catch (e) {
-    if (!mounted) return;
+    if (!formatoValido.hasMatch(numero) || RegExp(r'^0+$').hasMatch(numero)) {
+      _mostrarErro('Informe seu telefone com DDD.');
+      return;
+    }
 
-    _mostrarErro(
-      e.toString().replaceFirst('Exception: ', ''),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        _carregando = false;
-      });
+    if (senha.isEmpty) {
+      _mostrarErro('Digite uma senha.');
+      return;
+    }
+
+    if (senha.length < 8) {
+      _mostrarErro('A senha deve ter no mínimo 8 caracteres.');
+      return;
+    }
+
+    // Mesma regra do backend: pelo menos uma letra e um número
+    if (!RegExp(r'^(?=.*[0-9])(?=.*[a-zA-Z]).*$').hasMatch(senha)) {
+      _mostrarErro('A senha deve conter pelo menos uma letra e um número.');
+      return;
+    }
+
+    if (senha != confirmarSenha) {
+      _mostrarErro('As senhas não coincidem.');
+      return;
+    }
+
+    setState(() {
+      _carregando = true;
+    });
+
+    try {
+      await AuthService.enviarCodigoCadastro(email);
+
+      CadastroUsuario.id = const Uuid().v4();
+      CadastroUsuario.nome = nome;
+      CadastroUsuario.email = email;
+      CadastroUsuario.telefone = telefone;
+      CadastroUsuario.senha = senha;
+
+      if (!mounted) return;
+
+      context.push(
+        '/confirmar-email',
+        extra: {
+          'nome': nome,
+          'email': email,
+          'telefone': telefone,
+          'senha': senha,
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      final mensagem = e.toString().replaceFirst('Exception: ', '');
+      if (mensagem.toLowerCase().contains('e-mail já está em uso')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Já existe uma conta com esse e-mail. Entre para cadastrar sua loja.',
+            ),
+            action: SnackBarAction(
+              label: 'Entrar',
+              onPressed: () => context.push('/login', extra: email),
+            ),
+          ),
+        );
+      } else {
+        _mostrarErro(mensagem);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
     }
   }
-}
 
   void _mostrarErro(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensagem),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(mensagem)));
   }
 
-
-
-   @override
+  @override
   void dispose() {
     _nomeController.dispose();
     _emailController.dispose();
@@ -140,7 +146,6 @@ Future<void> _continuar() async {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -155,14 +160,20 @@ Future<void> _continuar() async {
                     SizedBox(width: 12.w),
                     Text(
                       'Criar conta',
-                      style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 SizedBox(height: 24.h),
                 Text(
                   'Crie seu acesso',
-                  style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
@@ -176,19 +187,22 @@ Future<void> _continuar() async {
                 SizedBox(height: 18.h),
                 Text(
                   'Nome completo',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
                 SizedBox(height: 4.h),
-                
-              NhacInputField(
-                hintText: 'Nome',
-                controller: _nomeController,
-              ),
+
+                NhacInputField(hintText: 'Nome', controller: _nomeController),
                 SizedBox(height: 16.h),
                 Text(
                   'E-mail',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 4.h),
 
@@ -201,13 +215,16 @@ Future<void> _continuar() async {
                 SizedBox(height: 16.h),
                 Text(
                   'Telefone',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 4.h),
 
                 NhacInputField(
                   hintText: '(00) 00000-0000',
-                 controller: _telefoneController,
+                  controller: _telefoneController,
                   keyboardType: TextInputType.phone,
                 ),
 
@@ -215,7 +232,10 @@ Future<void> _continuar() async {
 
                 Text(
                   'Nova senha',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
                 SizedBox(height: 4.h),
@@ -226,7 +246,11 @@ Future<void> _continuar() async {
                   obscureText: !_senhaVisivel,
                   suffixIcon: IconButton(
                     icon: _senhaVisivel
-                        ? Icon(Icons.visibility, color: const Color(0xFFFF6961), size: 24.sp)
+                        ? Icon(
+                            Icons.visibility,
+                            color: const Color(0xFFFF6961),
+                            size: 24.sp,
+                          )
                         : SvgPicture.asset(
                             'assets/images/olho-fechado.svg',
                             width: 24.w,
@@ -248,7 +272,10 @@ Future<void> _continuar() async {
 
                 Text(
                   'Confirmar nova senha',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
                 SizedBox(height: 4.h),
@@ -259,7 +286,11 @@ Future<void> _continuar() async {
                   obscureText: !_confirmarSenhaVisivel,
                   suffixIcon: IconButton(
                     icon: _confirmarSenhaVisivel
-                        ? Icon(Icons.visibility, color: const Color(0xFFFF6961), size: 24.sp)
+                        ? Icon(
+                            Icons.visibility,
+                            color: const Color(0xFFFF6961),
+                            size: 24.sp,
+                          )
                         : SvgPicture.asset(
                             'assets/images/olho-fechado.svg',
                             width: 24.w,
@@ -279,10 +310,10 @@ Future<void> _continuar() async {
 
                 SizedBox(height: 32.h),
 
-               ButtonNhac(
-                texto: _carregando ? 'Enviando...' : 'Continuar',
-                onTap: _carregando ? null : _continuar,
-              //    onTap: () => context.push('/confirmar-email'),              
+                ButtonNhac(
+                  texto: _carregando ? 'Enviando...' : 'Continuar',
+                  onTap: _carregando ? null : _continuar,
+                  //    onTap: () => context.push('/confirmar-email'),
                 ),
               ],
             ),

@@ -71,7 +71,6 @@ class AuthService {
     required String email,
     required String senha,
   }) async {
-    print('➡️ Fazendo login: $email');
 
     final response = await http
         .post(
@@ -90,13 +89,12 @@ class AuthService {
         );
 
     print('⬅️ Status: ${response.statusCode}');
-    print('⬅️ Resposta: ${response.body}');
 
     if (response.statusCode != 200) {
-      throw Exception(_mensagemErro(response));
+      throw Exception(mensagemErro(response));
     }
 
-    final body = jsonDecode(response.body);
+    final body = jsonDecode(utf8.decode(response.bodyBytes));
 
     if (body is! Map<String, dynamic>) {
       throw Exception(
@@ -147,7 +145,6 @@ class AuthService {
   // =========================
 
   static Future<void> enviarCodigoCadastro(String email) async {
-    print('➡️ Enviando código para: $email');
 
     final response = await http
         .post(
@@ -160,14 +157,14 @@ class AuthService {
           }),
         )
         .timeout(
-          const Duration(seconds: 30),
+          const Duration(seconds: 65),
+          onTimeout: () => throw Exception('O servidor demorou para confirmar o envio. Verifique sua caixa de entrada e tente novamente.'),
         );
 
     print('⬅️ Status: ${response.statusCode}');
-    print('⬅️ Resposta: ${response.body}');
 
     if (response.statusCode != 200) {
-      throw Exception(_mensagemErro(response));
+      throw Exception(mensagemErro(response));
     }
   }
 
@@ -191,13 +188,12 @@ class AuthService {
       );
 
   print('⬅️ Status confirmação: ${response.statusCode}');
-  print('⬅️ Resposta confirmação: ${response.body}');
 
   if (response.statusCode != 200) {
-    throw Exception(_mensagemErro(response));
+    throw Exception(mensagemErro(response));
   }
 
-  final body = jsonDecode(response.body);
+  final body = jsonDecode(utf8.decode(response.bodyBytes));
 
   if (body is! Map<String, dynamic>) {
     throw Exception('Resposta inválida ao confirmar o e-mail.');
@@ -221,7 +217,6 @@ class AuthService {
   required String senha,
   required String tokenCadastro,
 }) async {
-  print('➡️ Registrando usuário: $email');
 
   final response = await http
       .post(
@@ -244,13 +239,12 @@ class AuthService {
       );
 
   print('⬅️ Status registro: ${response.statusCode}');
-  print('⬅️ Resposta registro: ${response.body}');
 
   if (response.statusCode != 201) {
-    throw Exception(_mensagemErro(response));
+    throw Exception(mensagemErro(response));
   }
 
-  final body = jsonDecode(response.body);
+  final body = jsonDecode(utf8.decode(response.bodyBytes));
 
   if (body is! Map<String, dynamic>) {
     throw Exception('Resposta inválida da API de autenticação.');
@@ -278,15 +272,19 @@ class AuthService {
   return body;
 }
 
-  static String _mensagemErro(http.Response response) {
+  static String mensagemErro(http.Response response) {
     if (response.body.isEmpty) {
       return 'Erro ${response.statusCode}';
     }
 
     try {
-      final body = jsonDecode(response.body);
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (body is Map<String, dynamic>) {
+        final detalhes = body['details'];
+        if (detalhes is Map && detalhes.isNotEmpty) {
+          return detalhes.values.join(' ');
+        }
         return body['message']?.toString() ??
             body['erro']?.toString() ??
             body['error']?.toString() ??

@@ -8,14 +8,15 @@ import 'package:nhac_lojas/components/nhac_input_field.dart';
 import 'package:nhac_lojas/services/auth_service.dart';
 
 class LoginLoja extends StatefulWidget {
-  const LoginLoja({super.key});
+  final String? email;
+  const LoginLoja({super.key, this.email});
 
   @override
   State<LoginLoja> createState() => _LoginLojaState();
 }
 
 class _LoginLojaState extends State<LoginLoja> {
-  final _emailController = TextEditingController();
+  late final _emailController = TextEditingController(text: widget.email);
   final _senhaController = TextEditingController();
 
   bool _senhaVisivel = false;
@@ -52,11 +53,9 @@ class _LoginLojaState extends State<LoginLoja> {
         senha: senha,
       );
 
-      debugPrint('LOGIN REALIZADO: $resultado');
-
       if (!mounted) return;
 
-      context.go('/home');
+      context.go(resultado['papel'] == 'CLIENTE' ? '/dados-basicos' : '/home');
     } catch (e) {
       if (!mounted) return;
 

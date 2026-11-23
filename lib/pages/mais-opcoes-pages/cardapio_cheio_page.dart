@@ -13,6 +13,7 @@ import 'package:nhac_lojas/components/search_container.dart';
 import 'package:nhac_lojas/models/produto_lojista_model.dart';
 import 'package:nhac_lojas/services/auth_service.dart';
 import 'package:nhac_lojas/services/lojista_service.dart';
+import '../../services/gestao_service.dart';
 
 class CardapioCheioPage extends StatefulWidget {
   const CardapioCheioPage({super.key});
@@ -27,6 +28,7 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
 
   List<ProdutoLojistaModel> _produtos = [];
 
+  final _alterando = <String>{};
   bool _carregando = true;
   String? _erro;
 
@@ -316,23 +318,21 @@ class _CardapioCheioPageState extends State<CardapioCheioPage> {
               complemento: produto.ativo ? null : 'Indisponível',
               exibirSwitch: true,
               ativoInicial: produto.ativo,
-              onSwitchChanged: (valor) {
-                // A alteração é apenas visual por enquanto.
-                // Precisamos de um endpoint no backend para persistir
-                // a ativação ou desativação do produto.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'A alteração de disponibilidade ainda não está conectada à API.',
-                    ),
-                  ),
-                );
+              onSwitchChanged: (ativo) async {
+                if (!_alterando.add(produto.id)) return;
+                final id = Uri.encodeComponent(produto.id);
+                try {
+                  await GestaoService.requisitar(ativo ? 'PATCH' : 'DELETE', ativo ? 'produtos/$id/ativar' : 'produtos/$id');
+                } catch (e) {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));
+                } finally {
+                  _alterando.remove(produto.id);
+                  if (mounted) await _carregarProdutos();
+                }
               },
-              onTap: () {
-                context.push(
-                  '/editar-produtos',
-                  extra: produto,
-                );
+              onTap: () async {
+                final alterado = await context.push<bool>('/editar-produtos', extra: produto);
+                if (mounted && alterado == true) await _carregarProdutos();
               },
               exibirSeta: true,
             ),
