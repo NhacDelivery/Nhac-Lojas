@@ -1,4 +1,8 @@
 import 'dart:io';
+import 'package:go_router/go_router.dart';
+import '../../services/gestao_service.dart';
+import '../../services/upload_service.dart';
+import '../../services/auth_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,16 +14,12 @@ import 'package:nhac_lojas/components/container_nhac.dart';
 import 'package:nhac_lojas/models/produto_lojista_model.dart';
 
 class EditarProdutosPage extends StatefulWidget {
-  final ProdutoLojistaModel produto;
+  final ProdutoLojistaModel? produto;
 
-  const EditarProdutosPage({
-    super.key,
-    required this.produto,
-  });
+  const EditarProdutosPage({super.key, this.produto});
 
   @override
-  State<EditarProdutosPage> createState() =>
-      _EditarProdutosPageState();
+  State<EditarProdutosPage> createState() => _EditarProdutosPageState();
 }
 
 class _EditarProdutosPageState extends State<EditarProdutosPage> {
@@ -36,7 +36,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
   File? novaFoto;
   bool salvando = false;
 
-  static const List<String> categorias = [
+  final List<String> categorias = [
     'Lanches',
     'Bebidas',
     'Sobremesas',
@@ -47,30 +47,31 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
   void initState() {
     super.initState();
 
-    nomeController = TextEditingController(
-      text: widget.produto.nome,
-    );
+    nomeController = TextEditingController(text: widget.produto?.nome ?? '');
 
-    // O modelo atual não possui descrição.
-    descricaoController = TextEditingController();
+    descricaoController = TextEditingController(
+      text: widget.produto?.descricao,
+    );
 
     precoController = TextEditingController(
-      text: widget.produto.preco
-          .toStringAsFixed(2)
-          .replaceAll('.', ','),
+      text: widget.produto?.preco.toStringAsFixed(2).replaceAll('.', ','),
     );
 
-    // O modelo atual não possui desconto.
-    descontoController = TextEditingController();
+    descontoController = TextEditingController(
+      text: widget.produto?.desconto?.toInt().toString(),
+    );
 
-    final categoria = widget.produto.categoria;
+    final categoria = widget.produto?.categoria;
 
-    categoriaSelecionada =
-        categoria != null && categorias.contains(categoria)
-            ? categoria
-            : categorias.first;
+    if (categoria != null &&
+        categoria.isNotEmpty &&
+        !categorias.contains(categoria))
+      categorias.add(categoria);
+    categoriaSelecionada = categoria != null && categorias.contains(categoria)
+        ? categoria
+        : categorias.first;
 
-    produtoDisponivel = widget.produto.ativo;
+    produtoDisponivel = widget.produto?.ativo ?? true;
   }
 
   @override
@@ -100,9 +101,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       final tamanho = await arquivo.length();
 
       if (tamanho > 5 * 1024 * 1024) {
-        mostrarMensagem(
-          'A imagem deve ter no máximo 5 MB.',
-        );
+        mostrarMensagem('A imagem deve ter no máximo 5 MB.');
         return;
       }
 
@@ -111,9 +110,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       });
     } catch (e) {
       if (mounted) {
-        mostrarMensagem(
-          'Não foi possível selecionar a foto.',
-        );
+        mostrarMensagem('Não foi possível selecionar a foto.');
       }
     }
   }
@@ -123,8 +120,8 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       return FileImage(novaFoto!);
     }
 
-    // O modelo atual não possui URL da foto.
-    return null;
+    final url = widget.produto?.fotoUrl;
+    return url == null || url.isEmpty ? null : NetworkImage(url);
   }
 
   // ============================================================
@@ -136,11 +133,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(mensagem),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(mensagem)));
   }
 
   // ============================================================
@@ -156,14 +149,15 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
     final precoTexto = precoController.text
         .replaceAll('R\$', '')
         .replaceAll(' ', '')
-        .replaceAll('.', '')
-        .replaceAll(',', '.');
-
-    final preco = double.tryParse(precoTexto);
-
-    final descontoTexto = descontoController.text
-        .replaceAll('%', '')
         .trim();
+
+    final preco = double.tryParse(
+      precoTexto.contains(',')
+          ? precoTexto.replaceAll('.', '').replaceAll(',', '.')
+          : precoTexto,
+    );
+
+    final descontoTexto = descontoController.text.replaceAll('%', '').trim();
 
     final desconto = descontoTexto.isEmpty
         ? null
@@ -171,17 +165,13 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
 
     // Validação do nome.
     if (nome.isEmpty) {
-      mostrarMensagem(
-        'Informe o nome do produto.',
-      );
+      mostrarMensagem('Informe o nome do produto.');
       return;
     }
 
     // Validação do preço.
     if (preco == null || !preco.isFinite || preco < 0) {
-      mostrarMensagem(
-        'Informe um preço válido.',
-      );
+      mostrarMensagem('Informe um preço válido.');
       return;
     }
 
@@ -190,10 +180,9 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
         (desconto == null ||
             !desconto.isFinite ||
             desconto < 0 ||
+            desconto != desconto.truncateToDouble() ||
             desconto > 100)) {
-      mostrarMensagem(
-        'Informe um desconto entre 0% e 100%.',
-      );
+      mostrarMensagem('Informe um desconto entre 0% e 100%.');
       return;
     }
 
@@ -202,37 +191,39 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
     });
 
     try {
-      /*
-       * A integração com o backend será feita aqui.
-       *
-       * ID do produto:
-       * widget.produto.id
-       *
-       * Dados editados:
-       * nome
-       * descricao
-       * preco
-       * desconto
-       * categoriaSelecionada
-       * produtoDisponivel
-       * novaFoto
-       *
-       * ATENÇÃO:
-       * Este código ainda não envia os dados para a API.
-       * O modelo atual também não possui descrição, desconto
-       * nem URL da foto.
-       */
-
-      if (!mounted) return;
-
-      mostrarMensagem(
-        'Os dados foram validados, mas ainda não foram salvos no servidor.',
+      final produto = widget.produto;
+      String? foto = produto?.fotoUrl;
+      if (novaFoto != null) {
+        final token = await AuthService.obterToken();
+        if (token == null) throw Exception('Entre novamente na sua conta.');
+        foto = await UploadService().enviarImagem(
+          arquivo: novaFoto!,
+          token: token,
+          pasta: 'produtos',
+        );
+      }
+      final caminho = produto == null
+          ? 'produtos'
+          : 'produtos/${Uri.encodeComponent(produto.id)}';
+      await GestaoService.requisitar(
+        produto == null ? 'POST' : 'PUT',
+        caminho,
+        {
+          'nome': nome,
+          'descricao': descricao,
+          'preco': preco,
+          'categoriaMenu': categoriaSelecionada,
+          'isAtivo': produtoDisponivel,
+          'imagemUrl': foto,
+          'percentualDesconto': desconto?.toInt(),
+          if (produto != null) 'peso': produto.peso,
+          if (produto != null) 'adicionais': produto.adicionais,
+        },
       );
+      if (mounted) context.pop(true);
     } catch (e) {
       if (mounted) {
-        mostrarMensagem(
-          'Não foi possível atualizar o produto.',
-        );
+        mostrarMensagem(e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) {
@@ -248,22 +239,20 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
   // ============================================================
 
   Future<void> excluirProduto() async {
-    Navigator.pop(context);
-
-    /*
-     * TODO:
-     * Implementar a chamada ao serviço da API.
-     *
-     * O identificador do produto é:
-     * widget.produto.id
-     *
-     * Após a exclusão bem-sucedida, retornar ao cardápio
-     * e atualizar a lista de produtos.
-     */
-
-    mostrarMensagem(
-      'A exclusão ainda precisa ser conectada à API.',
-    );
+    if (salvando || widget.produto == null) return;
+    setState(() => salvando = true);
+    try {
+      await GestaoService.requisitar(
+        'DELETE',
+        'produtos/${Uri.encodeComponent(widget.produto!.id)}',
+      );
+      if (mounted) context.pop(true);
+    } catch (e) {
+      if (mounted)
+        mostrarMensagem(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => salvando = false);
+    }
   }
 
   void confirmarExclusao() {
@@ -272,9 +261,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       showDragHandle: true,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20.r),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (modalContext) {
         return SafeArea(
@@ -302,7 +289,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                 SizedBox(height: 8.h),
 
                 const Text(
-                  'Essa ação não pode ser desfeita.',
+                  'O produto ficará indisponível para novos pedidos.',
                   textAlign: TextAlign.center,
                 ),
 
@@ -313,10 +300,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                   onTap: () {
                     Navigator.pop(modalContext);
 
-                    // Ainda não conectado à API.
-                    mostrarMensagem(
-                      'A exclusão ainda precisa ser conectada à API.',
-                    );
+                    excluirProduto();
                   },
                 ),
 
@@ -351,9 +335,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
         height: 156.h,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: Colors.redAccent,
-          ),
+          border: Border.all(color: Colors.redAccent),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12.r),
@@ -379,9 +361,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.redAccent,
-                    ),
+                    border: Border.all(color: Colors.redAccent),
                   ),
                   child: Icon(
                     Icons.camera_alt_outlined,
@@ -403,18 +383,12 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.camera_alt_outlined,
-            color: Colors.redAccent,
-            size: 26.sp,
-          ),
+          Icon(Icons.camera_alt_outlined, color: Colors.redAccent, size: 26.sp),
 
           SizedBox(height: 4.h),
 
           Text(
-            novaFoto == null
-                ? 'Adicionar foto do produto'
-                : 'Foto selecionada',
+            novaFoto == null ? 'Adicionar foto do produto' : 'Foto selecionada',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.redAccent,
@@ -426,10 +400,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
 
           Text(
             'PNG ou JPG, até 5 MB',
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 12.sp, color: Colors.grey),
           ),
         ],
       ),
@@ -445,8 +416,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       spacing: 8.w,
       runSpacing: 8.h,
       children: categorias.map((categoria) {
-        final selecionada =
-            categoriaSelecionada == categoria;
+        final selecionada = categoriaSelecionada == categoria;
 
         return ChoiceChip(
           label: Text(categoria),
@@ -479,10 +449,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       children: [
         Text(
           titulo,
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
         ),
 
         SizedBox(height: 4.h),
@@ -510,12 +477,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              20.w,
-              16.h,
-              20.w,
-              20.h,
-            ),
+            padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -528,7 +490,9 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
 
                     Expanded(
                       child: Text(
-                        'Editar produto',
+                        widget.produto == null
+                            ? 'Cadastrar produto'
+                            : 'Editar produto',
                         style: TextStyle(
                           fontSize: 20.sp,
                           fontWeight: FontWeight.bold,
@@ -588,8 +552,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                         titulo: 'Preço',
                         controller: precoController,
                         hint: 'R\$ 0,00',
-                        keyboardType:
-                            const TextInputType.numberWithOptions(
+                        keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                       ),
@@ -602,8 +565,7 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                         titulo: 'Desconto (opcional)',
                         controller: descontoController,
                         hint: '0%',
-                        keyboardType:
-                            const TextInputType.numberWithOptions(
+                        keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                       ),
@@ -639,33 +601,30 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                 // Botões.
                 Row(
                   children: [
-                    Expanded(
-                      flex: 1,
-                      child: GestureDetector(
-                        onTap: salvando
-                            ? null
-                            : confirmarExclusao,
-                        child: Container(
-                          height: 49.h,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: Colors.redAccent.withValues(
-                                alpha: 0.4,
+                    if (widget.produto != null)
+                      Expanded(
+                        flex: 1,
+                        child: GestureDetector(
+                          onTap: salvando ? null : confirmarExclusao,
+                          child: Container(
+                            height: 49.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(
+                                color: Colors.redAccent.withValues(alpha: 0.4),
+                                width: 1.2,
                               ),
-                              width: 1.2,
                             ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.delete_outline_rounded,
-                              color: Colors.redAccent,
-                              size: 24,
+                            child: const Center(
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                color: Colors.redAccent,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
 
                     SizedBox(width: 12.w),
 
@@ -674,10 +633,10 @@ class _EditarProdutosPageState extends State<EditarProdutosPage> {
                       child: ButtonNhac(
                         texto: salvando
                             ? 'Salvando...'
+                            : widget.produto == null
+                            ? 'Criar produto'
                             : 'Salvar alterações',
-                        onTap: salvando
-                            ? null
-                            : salvarAlteracoes,
+                        onTap: salvando ? null : salvarAlteracoes,
                       ),
                     ),
                   ],

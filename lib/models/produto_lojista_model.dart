@@ -7,6 +7,8 @@ class ProdutoLojistaModel {
   final String? descricao;
   final double? desconto;
   final String? fotoUrl;
+  final String? peso;
+  final List<dynamic> adicionais;
 
   ProdutoLojistaModel({
     required this.id,
@@ -16,7 +18,7 @@ class ProdutoLojistaModel {
     required this.ativo,
     this.descricao,
     this.desconto,
-    this.fotoUrl,
+    this.fotoUrl, this.peso, this.adicionais = const [],
   });
 
   factory ProdutoLojistaModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class ProdutoLojistaModel {
       preco: _converterPreco(json['preco']),
       categoria: (json['categoriaMenu'] ?? json['categoria'])?.toString(),
       ativo: json['ativo'] == true || json['ativo'] == 1,
+      peso: json['peso']?.toString(), adicionais: (json['adicionais'] as List?) ?? const [],
       descricao: (json['descricao'] ?? json['descricaoProduto'])?.toString(),
       desconto: _converterPrecoOpcional(
         json['desconto'] ?? json['percentualDesconto'],

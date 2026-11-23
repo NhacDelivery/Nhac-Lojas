@@ -212,7 +212,9 @@ Future<void> _carregarProdutos() async {
         SizedBox(height: 24.h),
         ButtonNhac(
           texto: 'Adicionar produto',
-          onTap: () => context.push('/cadastrar-produtos'),
+          onTap: () async {
+            if (await context.push<bool>('/cadastrar-produtos') == true && mounted) await _carregarProdutos();
+          },
         ),
       ],
     );

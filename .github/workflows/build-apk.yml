@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -27,10 +29,15 @@ jobs:
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.44.7'
           channel: stable
+          cache: true
 
       - name: Instalar dependências
         run: flutter pub get
+
+      - name: Testar integração do app
+        run: flutter test
 
       - name: Compilar APK
         run: flutter build apk --release
